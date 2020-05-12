@@ -1,0 +1,6 @@
+model_checkpoint_path: "C:\\Users\\JI712\\Documents\\Whisking\\Whisking_with_Midline-Frank Ma-2020-05-03\\dlc-models\\iteration-0\\Whisking_with_MidlineMay3-trainset95shuffle1\\train\\snapshot-500000"
+all_model_checkpoint_paths: "C:\\Users\\JI712\\Documents\\Whisking\\Whisking_with_Midline-Frank Ma-2020-05-03\\dlc-models\\iteration-0\\Whisking_with_MidlineMay3-trainset95shuffle1\\train\\snapshot-100000"
+all_model_checkpoint_paths: "C:\\Users\\JI712\\Documents\\Whisking\\Whisking_with_Midline-Frank Ma-2020-05-03\\dlc-models\\iteration-0\\Whisking_with_MidlineMay3-trainset95shuffle1\\train\\snapshot-200000"
+all_model_checkpoint_paths: "C:\\Users\\JI712\\Documents\\Whisking\\Whisking_with_Midline-Frank Ma-2020-05-03\\dlc-models\\iteration-0\\Whisking_with_MidlineMay3-trainset95shuffle1\\train\\snapshot-300000"
+all_model_checkpoint_paths: "C:\\Users\\JI712\\Documents\\Whisking\\Whisking_with_Midline-Frank Ma-2020-05-03\\dlc-models\\iteration-0\\Whisking_with_MidlineMay3-trainset95shuffle1\\train\\snapshot-400000"
+all_model_checkpoint_paths: "C:\\Users\\JI712\\Documents\\Whisking\\Whisking_with_Midline-Frank Ma-2020-05-03\\dlc-models\\iteration-0\\Whisking_with_MidlineMay3-trainset95shuffle1\\train\\snapshot-500000"
