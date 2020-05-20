@@ -180,6 +180,17 @@ class Analysis:
 
                 angle_annotation = "Left Angle: " + str(np.around(self.angle_l_arr[frame], 2)) + " Right Angle: " + str(np.around(self.angle_r_arr[frame], 2))
                 plt.text(650, 0, angle_annotation)
+
+            if bp == 'eyes':
+                x_l = [self.df_x[10, frame], self.df_x[13, frame]]
+                y_l = [self.df_y[10, frame], self.df_y[13, frame]]
+                x_r = [self.df_x[16, frame], self.df_x[19, frame]]
+                y_r = [self.df_y[16, frame], self.df_y[19, frame]]
+                plt.plot(x_l, y_l, color='blue')
+                plt.plot(x_r, y_r, color='blue')
+
+                blink_annotation = "Left Blink Signal: " + str(np.around(self.d_l_arr[frame], 2)) + " Right Blink Signal: " + str(np.around(self.d_r_arr[frame], 2))
+                plt.text(400, 0, blink_annotation)
             
             frame_annotation = "Frame: " + str(frame)
             plt.text(0, 0, frame_annotation)
@@ -203,7 +214,7 @@ def main():
     analysis = Analysis(h5_path, DLCscorer)
     # analysis.plot_whisker_angles(0, 5305, fill_gaps=False, animate=True,
     # fps=239.76)
-    analysis.plot_blink_signal(0, 5305, fill_gaps=False, animate=False, fps=239.76)
+    analysis.plot_blink_signal(1000, 2000, fill_gaps=False, animate=True, fps=239.76)
 
 if __name__ == '__main__':
     main()
