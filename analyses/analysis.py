@@ -32,7 +32,7 @@ class Analysis:
 
             angle_nan = False
 
-            m_midline = self.regress(22, 26, frame)
+            m_midline = self.regress(22, 25, frame)
             if m_midline == None:
                 print("Not enough points to regress on frame", frame, "for midline.")
                 self.m_midline_arr[frame] = [np.nan, np.nan]
@@ -114,7 +114,6 @@ class Analysis:
         return d
 
     def plot_blink_signal(self, startframe, endframe, fill_gaps=False, animate=False, fps=60):
-        10,13; 16,19
         self.d_l_arr = np.empty(self.nframes)
         self.d_r_arr = np.empty(self.nframes)
 
@@ -212,9 +211,8 @@ def main():
     h5_path = r'C:\Users\Ma990\OneDrive - Tufts\Jobs\SPEL\Whisking\Whisking_with_Midline-Frank Ma-2020-05-03\videos\iteration-2\6400ratDLC_resnet50_Whisking_with_MidlineMay3shuffle1_500000.h5'
     DLCscorer = 'DLC_resnet50_Whisking_with_MidlineMay3shuffle1_500000'
     analysis = Analysis(h5_path, DLCscorer)
-    # analysis.plot_whisker_angles(0, 5305, fill_gaps=False, animate=True,
-    # fps=239.76)
-    analysis.plot_blink_signal(1000, 2000, fill_gaps=False, animate=True, fps=239.76)
+    analysis.plot_whisker_angles(1000, 2000, fill_gaps=False, animate=True, fps=239.76)
+    # analysis.plot_blink_signal(1000, 2000, fill_gaps=False, animate=True, fps=239.76)
 
 if __name__ == '__main__':
     main()
