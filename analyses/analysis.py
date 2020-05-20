@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 from matplotlib import cm
 import numpy as np
 import pandas as pd
+from scipy.spatial import distance
 from celluloid import Camera
 
 class Analysis:
@@ -105,6 +106,40 @@ class Analysis:
         m, b = np.polyfit(x_arr, y_arr, 1)
         return (m, b)
 
+    def distance(self, df_ind_1, df_ind_2, frame):
+        p1 = (self.df_x[df_ind_1, frame], self.df_y[df_ind_1, frame])
+        p2 = (self.df_x[df_ind_2, frame], self.df_y[df_ind_2, frame])
+
+        d = distance.euclidean(p1, p2)
+        return d
+
+    def plot_blink_signal(self, startframe, endframe, fill_gaps=False, animate=False, fps=60):
+        10,13; 16,19
+        self.d_l_arr = np.empty(self.nframes)
+        self.d_r_arr = np.empty(self.nframes)
+
+        for frame in range(startframe, endframe):
+            if frame % 100 == 0:
+                print("Processing Frame", frame)
+
+            self.d_l_arr[frame] = self.distance(10, 13, frame)
+            self.d_r_arr[frame] = self.distance(16, 19, frame)
+        
+        if fill_gaps == True:
+            self.d_l_arr = self.interpolate_gaps(self.d_l_arr)
+            self.d_r_arr = self.interpolate_gaps(self.d_r_arr)
+
+        plt.plot(range(startframe, endframe), self.d_l_arr[startframe:endframe], label = "Left Blink Signal")
+        plt.plot(range(startframe, endframe), self.d_r_arr[startframe:endframe], label = "Right Blink Signal")
+        plt.xlabel('frame')
+        plt.ylabel('Distance between medial and lateral canthus')
+        plt.show()
+        plt.savefig('./blink_signal.png', dpi=300)
+        print("blink_signal.png saved!")
+        
+        if animate == True:
+            self.animate(startframe, endframe, bp='eyes', fps=fps)
+
     def interpolate_gaps(self, values, limit=None):
         """
         Fill gaps using linear interpolation, optionally only fill gaps up to a
@@ -145,6 +180,17 @@ class Analysis:
 
                 angle_annotation = "Left Angle: " + str(np.around(self.angle_l_arr[frame], 2)) + " Right Angle: " + str(np.around(self.angle_r_arr[frame], 2))
                 plt.text(650, 0, angle_annotation)
+
+            if bp == 'eyes':
+                x_l = [self.df_x[10, frame], self.df_x[13, frame]]
+                y_l = [self.df_y[10, frame], self.df_y[13, frame]]
+                x_r = [self.df_x[16, frame], self.df_x[19, frame]]
+                y_r = [self.df_y[16, frame], self.df_y[19, frame]]
+                plt.plot(x_l, y_l, color='blue')
+                plt.plot(x_r, y_r, color='blue')
+
+                blink_annotation = "Left Blink Signal: " + str(np.around(self.d_l_arr[frame], 2)) + " Right Blink Signal: " + str(np.around(self.d_r_arr[frame], 2))
+                plt.text(400, 0, blink_annotation)
             
             frame_annotation = "Frame: " + str(frame)
             plt.text(0, 0, frame_annotation)
@@ -166,7 +212,9 @@ def main():
     h5_path = r'C:\Users\Ma990\OneDrive - Tufts\Jobs\SPEL\Whisking\Whisking_with_Midline-Frank Ma-2020-05-03\videos\iteration-2\6400ratDLC_resnet50_Whisking_with_MidlineMay3shuffle1_500000.h5'
     DLCscorer = 'DLC_resnet50_Whisking_with_MidlineMay3shuffle1_500000'
     analysis = Analysis(h5_path, DLCscorer)
-    analysis.plot_whisker_angles(0, 5305, fill_gaps=False, animate=True, fps=239.76)
+    # analysis.plot_whisker_angles(0, 5305, fill_gaps=False, animate=True,
+    # fps=239.76)
+    analysis.plot_blink_signal(1000, 2000, fill_gaps=False, animate=True, fps=239.76)
 
 if __name__ == '__main__':
     main()
