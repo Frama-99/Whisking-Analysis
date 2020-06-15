@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 from scipy.spatial import distance
 from celluloid import Camera
+import os
 
 class Analysis:
     def __init__(self, h5_path, DLCscorer):
@@ -60,8 +61,11 @@ class Analysis:
                 self.angle_l_arr[frame] = np.nan
                 self.angle_r_arr[frame] = np.nan
             else:
-                angle_l = np.absolute(np.degrees(np.arctan((m_midline[0] - m_c1_l[0])/(1 + m_midline[0] * m_c1_l[0]))))
-                angle_r = np.absolute(np.degrees(np.arctan((m_midline[0] - m_c1_r[0])/(1 + m_midline[0] * m_c1_r[0]))))
+                # -90 because we are defining the Whisker angle as
+                # retraction = negative and protraction = positive, with
+                # the line perpendicular to the midline being 0. 
+                angle_l = np.degrees(np.arctan((m_midline[0] - m_c1_l[0])/(1 + m_midline[0] * m_c1_l[0])))
+                angle_r = np.degrees(np.arctan((m_midline[0] - m_c1_r[0])/(1 + m_midline[0] * m_c1_r[0])))
                 self.angle_l_arr[frame] = angle_l
                 self.angle_r_arr[frame] = angle_r
         
@@ -74,7 +78,8 @@ class Analysis:
         plt.xlabel('frame')
         plt.ylabel('Angle in degrees')
         plt.show()
-        plt.savefig('./whisker_angles.png', dpi=300)
+        
+        plt.savefig(os.path.dirname(os.path.abspath(__file__)) + '\\output\\whisker_angles.png', dpi=300)
         print("whisker_angles.png saved!")
         
         if animate == True:
@@ -121,8 +126,13 @@ class Analysis:
             if frame % 100 == 0:
                 print("Processing Frame", frame)
 
-            self.d_l_arr[frame] = self.distance(10, 13, frame)
-            self.d_r_arr[frame] = self.distance(16, 19, frame)
+            # Distance between medial and lateral canthus
+            # self.d_l_arr[frame] = self.distance(10, 13, frame)
+            # self.d_r_arr[frame] = self.distance(16, 19, frame)
+            
+            # Distance between upper and lower lids
+            self.d_l_arr[frame] = (self.distance(11, 15, frame) + self.distance(12, 14, frame)) / 2
+            self.d_r_arr[frame] = (self.distance(17, 21, frame) + self.distance(18, 20, frame)) / 2
         
         if fill_gaps == True:
             self.d_l_arr = self.interpolate_gaps(self.d_l_arr)
@@ -131,9 +141,9 @@ class Analysis:
         plt.plot(range(startframe, endframe), self.d_l_arr[startframe:endframe], label = "Left Blink Signal")
         plt.plot(range(startframe, endframe), self.d_r_arr[startframe:endframe], label = "Right Blink Signal")
         plt.xlabel('frame')
-        plt.ylabel('Distance between medial and lateral canthus')
-        plt.show()
-        plt.savefig('./blink_signal.png', dpi=300)
+        plt.ylabel('Distance between upper and lower lids')
+        # plt.show()
+        plt.savefig(os.path.dirname(os.path.abspath(__file__)) + '\\output\\blink_signal.png', dpi=300)
         print("blink_signal.png saved!")
         
         if animate == True:
@@ -181,12 +191,18 @@ class Analysis:
                 plt.text(650, 0, angle_annotation)
 
             if bp == 'eyes':
-                x_l = [self.df_x[10, frame], self.df_x[13, frame]]
-                y_l = [self.df_y[10, frame], self.df_y[13, frame]]
-                x_r = [self.df_x[16, frame], self.df_x[19, frame]]
-                y_r = [self.df_y[16, frame], self.df_y[19, frame]]
-                plt.plot(x_l, y_l, color='blue')
-                plt.plot(x_r, y_r, color='blue')
+                x1_l = [self.df_x[11, frame], self.df_x[15, frame]]
+                y1_l = [self.df_y[11, frame], self.df_y[15, frame]]
+                x2_l = [self.df_x[12, frame], self.df_x[14, frame]]
+                y2_l = [self.df_y[12, frame], self.df_y[14, frame]]
+                x1_r = [self.df_x[17, frame], self.df_x[21, frame]]
+                y1_r = [self.df_y[17, frame], self.df_y[21, frame]]
+                x2_r = [self.df_x[18, frame], self.df_x[20, frame]]
+                y2_r = [self.df_y[18, frame], self.df_y[20, frame]]
+                plt.plot(x1_l, y1_l, color='blue')
+                plt.plot(x1_r, y1_r, color='blue')
+                plt.plot(x2_l, y2_l, color='blue')
+                plt.plot(x2_r, y2_r, color='blue')
 
                 blink_annotation = "Left Blink Signal: " + str(np.around(self.d_l_arr[frame], 2)) + " Right Blink Signal: " + str(np.around(self.d_r_arr[frame], 2))
                 plt.text(400, 0, blink_annotation)
@@ -199,8 +215,8 @@ class Analysis:
         print("Animating...")
         anim = camera.animate(blit=True)
         print("Saving...")
-        anim_filename = "./animation" + str(fps) + "fps.mp4"
-        anim.save(anim_filename, fps=fps)
+        anim_filename = 'animation_' + bp + str(fps) + "fps.mp4"
+        anim.save(os.path.dirname(os.path.abspath(__file__)) + anim_filename, fps=fps)
     
     def plot_regres(self, m, b):
         x = np.linspace(0, 1280, 100)
@@ -211,8 +227,8 @@ def main():
     h5_path = r'C:\Users\Ma990\OneDrive - Tufts\Jobs\SPEL\Whisking\Whisking_with_Midline-Frank Ma-2020-05-03\videos\iteration-2\6400ratDLC_resnet50_Whisking_with_MidlineMay3shuffle1_500000.h5'
     DLCscorer = 'DLC_resnet50_Whisking_with_MidlineMay3shuffle1_500000'
     analysis = Analysis(h5_path, DLCscorer)
-    analysis.plot_whisker_angles(1000, 2000, fill_gaps=False, animate=True, fps=239.76)
-    # analysis.plot_blink_signal(1000, 2000, fill_gaps=False, animate=True, fps=239.76)
+    # analysis.plot_whisker_angles(1000, 2000, fill_gaps=False, animate=True, fps=239.76)
+    analysis.plot_blink_signal(0, 5305, fill_gaps=False, animate=True, fps=239.76)
 
 if __name__ == '__main__':
     main()
