@@ -2,10 +2,10 @@ import cv2
 import os
 import sys
 import numpy as np
-
 """
 Reference: https://github.com/nadamian/VCTrack/blob/master/draw.py
 """
+
 
 def find_line_start_end(m, b, w, h):
     """
@@ -33,28 +33,30 @@ def find_line_start_end(m, b, w, h):
     # print("m =", m, "b =", b)
     if np.isnan(m) or np.isnan(b):
         return None
-    
+
     if b >= 0 and b <= h:
         intersect.append((0, b))
-    if (-b/m) >= 0 and (-b/m) <= w:
-        if (-b/m, 0) not in intersect:
-            intersect.append((-b/m, 0))
-    if (m*w+b) >= 0 and (m*w+b) <= h:
-        if (w, m*w + b) not in intersect:
-            intersect.append((w, m*w + b))
-    if (h-b)/m >= 0 and (h-b)/m <= w:
-        if ((h-b)/m, h) not in intersect:
-            intersect.append(((h-b)/m, h))
+    if (-b / m) >= 0 and (-b / m) <= w:
+        if (-b / m, 0) not in intersect:
+            intersect.append((-b / m, 0))
+    if (m * w + b) >= 0 and (m * w + b) <= h:
+        if (w, m * w + b) not in intersect:
+            intersect.append((w, m * w + b))
+    if (h - b) / m >= 0 and (h - b) / m <= w:
+        if ((h - b) / m, h) not in intersect:
+            intersect.append(((h - b) / m, h))
     if len(intersect) is not 2:
-        raise RuntimeError("Unknown line end points calculation error. Intersect = " + str(intersect) + ", m = " + str(m) + ", b = " + str(b))
+        raise RuntimeError(
+            "Unknown line end points calculation error. Intersect = " +
+            str(intersect) + ", m = " + str(m) + ", b = " + str(b))
     return [(int(round(i[0])), int(round(i[1]))) for i in intersect]
 
 
 def draw(path, startframe, endframe, lines, angles, outfile, videotype='.mp4'):
     """Takes each frame from video and stitches it back into new video with
     line drawn on."""
-    
-    # getting video parameters 
+
+    # getting video parameters
     cap = cv2.VideoCapture(path)
     fps = cap.get(cv2.CAP_PROP_FPS)
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
@@ -63,7 +65,7 @@ def draw(path, startframe, endframe, lines, angles, outfile, videotype='.mp4'):
     # make sure that the first frame read will be the start frame
     cap.set(cv2.CAP_PROP_POS_FRAMES, startframe - 1)
     # s signals whether or not we are at the end, im is the frame
-    s, im = cap.read() 
+    s, im = cap.read()
     # count for which frame we are on
     frame = startframe
 
@@ -86,16 +88,19 @@ def draw(path, startframe, endframe, lines, angles, outfile, videotype='.mp4'):
     while s and (frame < endframe):
         # print progress to stdout
         if frame % 5 == 0:
-            print(str(round((frame - startframe) / (endframe - startframe) * 100)) + '%')
+            print(
+                str(round((frame - startframe) /
+                          (endframe - startframe) * 100)) + '%')
 
         # print lines
         for line in lines:
             line_ends = find_line_start_end(*line[frame], width, height)
-        # if left_line is not None and right_line is not None and left_line.slope > 10 and right_line.slope > 10:
+            # if left_line is not None and right_line is not None and left_line.slope > 10 and right_line.slope > 10:
             # print(line_ends)
             if line_ends is not None:
-                cv2.imwrite(path + '.png', cv2.line(im, *line_ends, (255, 0, 0), 2))
-        
+                cv2.imwrite(path + '.png',
+                            cv2.line(im, *line_ends, (255, 0, 0), 2))
+
         # print angle numbers
         # if angles[count] is not None:
         #     cv2.putText(im, str(round(angles[count], 2)), (10, 20),
