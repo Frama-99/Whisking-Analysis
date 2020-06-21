@@ -1,5 +1,6 @@
 import cv2
 import os
+import sys
 import numpy as np
 
 """
@@ -29,6 +30,10 @@ def find_line_start_end(m, b, w, h):
     - 0 <= (h - b)/m <= w
     """
     intersect = []
+    # print("m =", m, "b =", b)
+    if np.isnan(m) or np.isnan(b):
+        return None
+    
     if b >= 0 and b <= h:
         intersect.append((0, b))
     if (-b/m) >= 0 and (-b/m) <= w:
@@ -41,8 +46,8 @@ def find_line_start_end(m, b, w, h):
         if ((h-b)/m, h) not in intersect:
             intersect.append(((h-b)/m, h))
     if len(intersect) is not 2:
-        raise RuntimeError("Line end points calculation error")
-    return intersect
+        raise RuntimeError("Unknown line end points calculation error. Intersect = " + str(intersect) + ", m = " + str(m) + ", b = " + str(b))
+    return [(int(round(i[0])), int(round(i[1]))) for i in intersect]
 
 
 def draw(path, startframe, endframe, lines, angles, outfile, videotype='.mp4'):
@@ -51,16 +56,16 @@ def draw(path, startframe, endframe, lines, angles, outfile, videotype='.mp4'):
     
     # getting video parameters 
     cap = cv2.VideoCapture(path)
-    frames = cap.get(cv2.CAP_PROP_FPS)
+    fps = cap.get(cv2.CAP_PROP_FPS)
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
     # make sure that the first frame read will be the start frame
-    cap.set(cv2.CV_CAP_PROP_POS_FRAMES, startframe - 1)
+    cap.set(cv2.CAP_PROP_POS_FRAMES, startframe - 1)
     # s signals whether or not we are at the end, im is the frame
     s, im = cap.read() 
     # count for which frame we are on
-    count = startframe
+    frame = startframe
 
     # specify output video format and output path
     name = path[path.rfind('\\') + 1:path.rfind('.')] + 'with_lines'
@@ -72,55 +77,36 @@ def draw(path, startframe, endframe, lines, angles, outfile, videotype='.mp4'):
         fourcc = 0
 
     # w is the video object to be outputted
+    print("video output path:", os.path.join(outfile, name + videotype))
     w = cv2.VideoWriter(os.path.join(outfile, name + videotype), \
-                        fourcc, frames, (width, height))
+                        fourcc, fps, (width, height))
 
+    print('Printing lines on your video.')
     # loop until we're at the endframe or at the end of the video
-    while s and (count is not endframe):
+    while s and (frame < endframe):
         # print progress to stdout
-        if count % 5 == 0:
-            print('Printing lines on your video.')
-            print(str(round(count / len(angles) * 100)) + '%')
+        if frame % 5 == 0:
+            print(str(round((frame - startframe) / (endframe - startframe) * 100)) + '%')
 
         # print lines
-        left_line = lines[0][count]
-        right_line = lines[1][count]
-        if left_line is not None and right_line is not None:
-            cross = intersect(left_line, right_line)
-        else:
-            cross = None
-        if left_line is not None and right_line is not None and left_line.slope\
-                > 10 and right_line.slope > 10:
-            cv2.imwrite(path + '.png',
-                        cv2.line(im, left_line.end1, left_line.end2,
-                                 (255, 0, 0), 2))
-            cv2.imwrite(path + '.png',
-                        cv2.line(im, right_line.end1, right_line.end2,
-                                 (255, 0, 0), 2))
-        elif cross is not None:
-            if cross[1] > (left_line.end1[1] + right_line.end1[1]) / 2 + 20 or \
-                   cross[1] < (left_line.end1[1] + right_line.end1[1]) / 2 - 20:
-                cv2.imwrite(path + '.png', cv2.line
-                            (im, left_line.end1, left_line.end2, (255, 0, 0), 2))
-                cv2.imwrite(path + '.png',
-                            cv2.line(im, right_line.end1, right_line.end2,
-                                     (255, 0, 0), 2))
-            else:
-                cv2.imwrite(path + '.png',
-                            cv2.line(im, cross, left_line.end2, (255, 0, 0), 2))
-                cv2.imwrite(path + '.png',
-                            cv2.line(im, cross, right_line.end2, (255, 0, 0),
-                                     2))
+        for line in lines:
+            line_ends = find_line_start_end(*line[frame], width, height)
+        # if left_line is not None and right_line is not None and left_line.slope > 10 and right_line.slope > 10:
+            # print(line_ends)
+            if line_ends is not None:
+                cv2.imwrite(path + '.png', cv2.line(im, *line_ends, (255, 0, 0), 2))
         
         # print angle numbers
-        if angles[count] is not None:
-            cv2.putText(im, str(round(angles[count], 2)), (10, 20),
-                        cv2.FONT_HERSHEY_SIMPLEX, 1,  (1, 1, 198), 2,
-                        cv2.LINE_AA)
+        # if angles[count] is not None:
+        #     cv2.putText(im, str(round(angles[count], 2)), (10, 20),
+        #                 cv2.FONT_HERSHEY_SIMPLEX, 1,  (1, 1, 198), 2,
+        #                 cv2.LINE_AA)
         w.write(im)
         s, im = cap.read()
-        count += 1
+        frame += 1
+
     cap.release()
     w.release()
     cv2.destroyAllWindows()
+
     return os.path.join(path[:path.rfind('videos')], name)

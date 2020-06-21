@@ -5,6 +5,7 @@ import pandas as pd
 from scipy.spatial import distance
 from celluloid import Camera
 import os
+from draw import *
 
 class Analysis:
     def __init__(self, h5_path, DLCscorer):
@@ -14,13 +15,14 @@ class Analysis:
         self.df_likelihood = np.empty((len(self.bodyparts2plot), self.nframes))
         self.df_x = np.empty((len(self.bodyparts2plot), self.nframes))
         self.df_y = np.empty((len(self.bodyparts2plot), self.nframes))
+        self.outpath = os.path.dirname(os.path.abspath(__file__)) + '\\output\\'
 
         for bpindex, bp in enumerate(self.bodyparts2plot):
             self.df_likelihood[bpindex,:] = df[DLCscorer,bp,'likelihood'].values
             self.df_x[bpindex,:] = df[DLCscorer,bp,'x'].values # an array of 26 arrays with 5305 elements each
             self.df_y[bpindex,:] = df[DLCscorer,bp,'y'].values # an array of 26 arrays with 5305 elements each
 
-    def plot_whisker_angles(self, startframe, endframe, fill_gaps=False, animate=False, fps=60):
+    def plot_whisker_angles(self, startframe, endframe, fill_gaps=False, draw_video=False, animate=False, fps=60):
         self.m_midline_arr = np.empty((self.nframes, 2))
         self.m_c1_l_arr = np.empty((self.nframes, 2))
         self.m_c1_r_arr = np.empty((self.nframes, 2))
@@ -79,7 +81,7 @@ class Analysis:
         plt.ylabel('Angle in degrees')
         plt.show()
         
-        plt.savefig(os.path.dirname(os.path.abspath(__file__)) + '\\output\\whisker_angles.png', dpi=300)
+        plt.savefig(self.outpath + 'whisker_angles.png', dpi=300)
         print("whisker_angles.png saved!")
         
         if animate == True:
@@ -143,7 +145,7 @@ class Analysis:
         plt.xlabel('frame')
         plt.ylabel('Distance between upper and lower lids')
         # plt.show()
-        plt.savefig(os.path.dirname(os.path.abspath(__file__)) + '\\output\\blink_signal.png', dpi=300)
+        plt.savefig(self.outpath + 'blink_signal.png', dpi=300)
         print("blink_signal.png saved!")
         
         if animate == True:
@@ -216,7 +218,7 @@ class Analysis:
         anim = camera.animate(blit=True)
         print("Saving...")
         anim_filename = 'animation_' + bp + str(fps) + "fps.mp4"
-        anim.save(os.path.dirname(os.path.abspath(__file__)) + '\\output\\' + anim_filename, fps=fps)
+        anim.save(self.outpath + anim_filename, fps=fps)
     
     def plot_regres(self, m, b):
         x = np.linspace(0, 1280, 100)
@@ -227,7 +229,13 @@ def main():
     h5_path = r'C:\Users\Ma990\OneDrive - Tufts\Jobs\SPEL\Whisking\Whisking_with_Midline-Frank Ma-2020-05-03\videos\iteration-2\6400ratDLC_resnet50_Whisking_with_MidlineMay3shuffle1_500000.h5'
     DLCscorer = 'DLC_resnet50_Whisking_with_MidlineMay3shuffle1_500000'
     analysis = Analysis(h5_path, DLCscorer)
-    analysis.plot_whisker_angles(1000, 1100, fill_gaps=False, animate=True, fps=239.76)
+    analysis.plot_whisker_angles(1000, 2000, fill_gaps=False, animate=False, fps=239.76)
+    
+    videopath = r'C:\Users\Ma990\OneDrive - Tufts\Jobs\SPEL\Whisking\Whisking_with_Midline-Frank Ma-2020-05-03\videos\iteration-2\6400ratDLC_resnet50_Whisking_with_MidlineMay3shuffle1_500000_labeled.MP4'
+    lines_to_draw = [analysis.m_midline_arr, analysis.m_c1_l_arr, analysis.m_c1_r_arr]
+    angles_to_print = [analysis.angle_l_arr, analysis.angle_r_arr]
+    outfile = analysis.outpath
+    print(draw(videopath, 1000, 2000, lines_to_draw, angles_to_print, outfile))
     # analysis.plot_blink_signal(0, 5305, fill_gaps=False, animate=True, fps=239.76)
 
 if __name__ == '__main__':
