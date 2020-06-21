@@ -36,7 +36,7 @@ def distance(df_x, df_y, df_ind_1, df_ind_2, frame):
     d = dist.euclidean(p1, p2)
     return d
 
-def interpolate_gaps(self, values, limit=None):
+def interpolate_gaps(values, limit=None):
     """
     Fill gaps using linear interpolation, optionally only fill gaps up to a
     size of `limit`.

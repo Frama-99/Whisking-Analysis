@@ -237,7 +237,7 @@ def main():
     lines_to_draw = [
         analysis.m_midline_arr, analysis.m_c1_l_arr, analysis.m_c1_r_arr
     ]
-    angles_to_print = [analysis.angle_l_arr, analysis.angle_r_arr]
+    angles_to_print = {"left": analysis.angle_l_arr, "right": analysis.angle_r_arr}
     outfile = analysis.outpath
     print(draw(videopath, 1000, 2000, lines_to_draw, angles_to_print, outfile))
     # analysis.plot_blink_signal(0, 5305, fill_gaps=False, animate=True, fps=239.76)

@@ -2,6 +2,9 @@ import cv2
 import os
 import sys
 import numpy as np
+
+import time
+from tqdm import tqdm
 """
 Reference: https://github.com/nadamian/VCTrack/blob/master/draw.py
 """
@@ -84,13 +87,13 @@ def draw(path, startframe, endframe, lines, angles, outfile, videotype='.mp4'):
                         fourcc, fps, (width, height))
 
     print('Printing lines on your video.')
+    frames = range(startframe, endframe)
+    
     # loop until we're at the endframe or at the end of the video
-    while s and (frame < endframe):
-        # print progress to stdout
-        if frame % 5 == 0:
-            print(
-                str(round((frame - startframe) /
-                          (endframe - startframe) * 100)) + '%')
+    for frame in tqdm(frames):
+        if not s:
+            print("The provided endframe {endframe} is larger than the number of available frames, {frame}. Stopping.")
+            break
 
         # print lines
         for line in lines:
@@ -100,16 +103,22 @@ def draw(path, startframe, endframe, lines, angles, outfile, videotype='.mp4'):
                             cv2.line(im, *line_ends, (255, 0, 0), 2))
 
         # print angle numbers
-        # if angles[count] is not None:
-        #     cv2.putText(im, str(round(angles[count], 2)), (10, 20),
-        #                 cv2.FONT_HERSHEY_SIMPLEX, 1,  (1, 1, 198), 2,
-        #                 cv2.LINE_AA)
+        angle_annotation = "Left Angle: " + str(
+            np.around(angles['left'][frame], 2)) + " Right Angle: " + str(
+                np.around(angles['right'][frame], 2))
+        cv2.putText(img=im,
+                    text=angle_annotation,
+                    org=(10, 50),
+                    fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+                    fontScale=1,
+                    color=(255, 255, 255),
+                    thickness=2,
+                    lineType=cv2.LINE_AA)
+
         w.write(im)
         s, im = cap.read()
-        frame += 1
 
+    # cleanup
     cap.release()
     w.release()
     cv2.destroyAllWindows()
-
-    return os.path.join(path[:path.rfind('videos')], name)
