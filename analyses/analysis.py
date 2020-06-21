@@ -104,7 +104,7 @@ class Analysis:
             # print("x_arr is now", x_arr)
             # print("y_arr is now", y_arr)
 
-        if len(x_arr) <= 1:
+        if len(x_arr) < 3:
             # print("Returning none")
             return None
 
@@ -216,7 +216,7 @@ class Analysis:
         anim = camera.animate(blit=True)
         print("Saving...")
         anim_filename = 'animation_' + bp + str(fps) + "fps.mp4"
-        anim.save(os.path.dirname(os.path.abspath(__file__)) + anim_filename, fps=fps)
+        anim.save(os.path.dirname(os.path.abspath(__file__)) + '\\output\\' + anim_filename, fps=fps)
     
     def plot_regres(self, m, b):
         x = np.linspace(0, 1280, 100)
@@ -227,8 +227,8 @@ def main():
     h5_path = r'C:\Users\Ma990\OneDrive - Tufts\Jobs\SPEL\Whisking\Whisking_with_Midline-Frank Ma-2020-05-03\videos\iteration-2\6400ratDLC_resnet50_Whisking_with_MidlineMay3shuffle1_500000.h5'
     DLCscorer = 'DLC_resnet50_Whisking_with_MidlineMay3shuffle1_500000'
     analysis = Analysis(h5_path, DLCscorer)
-    # analysis.plot_whisker_angles(1000, 2000, fill_gaps=False, animate=True, fps=239.76)
-    analysis.plot_blink_signal(0, 5305, fill_gaps=False, animate=True, fps=239.76)
+    analysis.plot_whisker_angles(1000, 1100, fill_gaps=False, animate=True, fps=239.76)
+    # analysis.plot_blink_signal(0, 5305, fill_gaps=False, animate=True, fps=239.76)
 
 if __name__ == '__main__':
     main()
