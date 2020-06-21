@@ -12,9 +12,8 @@ import math_utils
 class Analysis:
     def __init__(self, h5_path, DLCscorer):
         df = pd.read_hdf(h5_path)
-        self.bodyparts2plot = list(
-            df.columns.levels[1]
-        )  # https://stackoverflow.com/questions/34082137/how-to-get-pandas-column-multiindex-names-as-a-list
+        # https://stackoverflow.com/questions/34082137/how-to-get-pandas-column-multiindex-names-as-a-list
+        self.bodyparts2plot = list(df.columns.levels[1])
         self.nframes = len(df.index)
         self.df_likelihood = np.empty((len(self.bodyparts2plot), self.nframes))
         self.df_x = np.empty((len(self.bodyparts2plot), self.nframes))
@@ -25,12 +24,10 @@ class Analysis:
         for bpindex, bp in enumerate(self.bodyparts2plot):
             self.df_likelihood[bpindex, :] = df[DLCscorer, bp,
                                                 'likelihood'].values
-            self.df_x[bpindex, :] = df[
-                DLCscorer, bp,
-                'x'].values  # an array of 26 arrays with 5305 elements each
-            self.df_y[bpindex, :] = df[
-                DLCscorer, bp,
-                'y'].values  # an array of 26 arrays with 5305 elements each
+            # an array of 26 arrays with 5305 elements each
+            self.df_x[bpindex, :] = df[DLCscorer, bp, 'x'].values
+            # an array of 26 arrays with 5305 elements each
+            self.df_y[bpindex, :] = df[DLCscorer, bp, 'y'].values
 
     def plot_whisker_angles(self,
                             startframe,
@@ -130,10 +127,6 @@ class Analysis:
             if frame % 100 == 0:
                 print("Processing Frame", frame)
 
-            # Distance between medial and lateral canthus
-            # self.d_l_arr[frame] = math_utils.distance(10, 13, frame)
-            # self.d_r_arr[frame] = math_utils.distance(16, 19, frame)
-
             # Distance between upper and lower lids
             self.d_l_arr[frame] = (
                 math_utils.distance(self.df_x, self.df_y, 11, 15, frame) +
@@ -179,9 +172,8 @@ class Analysis:
                     np.around(bp_likelihood, 2),
                     (self.df_x[bp_index, frame], self.df_y[bp_index, frame]))
 
-            plt.ylim(
-                720, 0
-            )  # https://stackoverflow.com/questions/2051744/reverse-y-axis-in-pyplot
+            # https://stackoverflow.com/questions/2051744/reverse-y-axis-in-pyplot
+            plt.ylim(720, 0)
 
             if bp == 'whiskers':
                 self.plot_regres(*self.m_midline_arr[frame])

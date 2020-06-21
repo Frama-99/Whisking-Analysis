@@ -95,8 +95,6 @@ def draw(path, startframe, endframe, lines, angles, outfile, videotype='.mp4'):
         # print lines
         for line in lines:
             line_ends = find_line_start_end(*line[frame], width, height)
-            # if left_line is not None and right_line is not None and left_line.slope > 10 and right_line.slope > 10:
-            # print(line_ends)
             if line_ends is not None:
                 cv2.imwrite(path + '.png',
                             cv2.line(im, *line_ends, (255, 0, 0), 2))
