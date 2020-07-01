@@ -55,7 +55,7 @@ def find_line_start_end(m, b, w, h):
     return [(int(round(i[0])), int(round(i[1]))) for i in intersect]
 
 
-def draw(path, startframe, endframe, lines, angles, outfile, videotype='.mp4'):
+def draw(path, startframe, endframe, lines, segments, angles, outfile, videotype='.mp4'):
     """Takes each frame from video and stitches it back into new video with
     line drawn on."""
 
@@ -86,34 +86,17 @@ def draw(path, startframe, endframe, lines, angles, outfile, videotype='.mp4'):
     w = cv2.VideoWriter(os.path.join(outfile, name + videotype), \
                         fourcc, fps, (width, height))
 
-    print('Printing lines on your video.')
+    print('Printing regression lines and angles on your video.')
     frames = range(startframe, endframe)
     
     # loop until we're at the endframe or at the end of the video
     for frame in tqdm(frames):
         if not s:
-            print("The provided endframe {endframe} is larger than the number of available frames, {frame}. Stopping.")
+            print("The provided endframe {endframe} is larger than the number \
+                   of available frames, {frame}. Stopping.")
             break
-
-        # print lines
-        for line in lines:
-            line_ends = find_line_start_end(*line[frame], width, height)
-            if line_ends is not None:
-                cv2.imwrite(path + '.png',
-                            cv2.line(im, *line_ends, (255, 0, 0), 2))
-
-        # print angle numbers
-        angle_annotation = "Left Angle: " + str(
-            np.around(angles['left'][frame], 2)) + " Right Angle: " + str(
-                np.around(angles['right'][frame], 2))
-        cv2.putText(img=im,
-                    text=angle_annotation,
-                    org=(10, 50),
-                    fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                    fontScale=1,
-                    color=(255, 255, 255),
-                    thickness=2,
-                    lineType=cv2.LINE_AA)
+        
+        draw_elements(im, lines, segments, angles, frame, width, height)
 
         w.write(im)
         s, im = cap.read()
@@ -122,3 +105,29 @@ def draw(path, startframe, endframe, lines, angles, outfile, videotype='.mp4'):
     cap.release()
     w.release()
     cv2.destroyAllWindows()
+
+def draw_elements(im, lines, segments, angles, frame, width, height):
+    # print lines
+    if lines is not None:
+        for line in lines:
+            line_ends = find_line_start_end(*line[frame], width, height)
+            if line_ends is not None:
+                cv2.line(im, *line_ends, (255, 0, 0), 2)
+
+    # print segments
+    if segments is not None:
+        for segment in segments:
+            cv2.line(im, segment[0], segment[1], (255, 0, 0), 2)
+
+    # print angles
+    if angles is not None:
+        for angle in angles:
+            angle_annotation = "Left Angle: " + str(np.around(angles['left'][frame], 2)) + " Right Angle: " + str(np.around(angles['right'][frame], 2))
+            cv2.putText(img=im,
+                        text=angle_annotation,
+                        org=(10, 50),
+                        fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+                        fontScale=1,
+                        color=(255, 255, 255),
+                        thickness=2,
+                        lineType=cv2.LINE_AA)
