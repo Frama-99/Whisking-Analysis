@@ -131,4 +131,5 @@ dmypy.json
 # Custon
 *.mp4
 src/GUI
+src/analysis/dlc_model
 /sample-project
