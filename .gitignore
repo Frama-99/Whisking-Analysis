@@ -130,3 +130,5 @@ dmypy.json
 
 # Custon
 *.mp4
+src/GUI
+/sample-project
