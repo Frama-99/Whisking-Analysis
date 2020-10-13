@@ -5,7 +5,7 @@
 #pragma once
 #endif // _MSC_VER > 1000
 
-#include "..\Hermes.h" //the hermes api header
+#include <Hermes.h> //the hermes api header
 #include "GrabberListDlg.h"
 
 class CChildView : public CWnd, public HGrabCallbacks, public CAudioRecorderCallback

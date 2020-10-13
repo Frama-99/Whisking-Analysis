@@ -1,7 +1,7 @@
 #pragma once
 #include "afxwin.h"
 
-#include "..\Hermes.h" //the hermes api header
+#include <Hermes.h> //the hermes api header
 // CGigEVisonTest dialog
 
 class CAdvanceSettingsDlg : public CDialog

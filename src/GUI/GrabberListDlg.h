@@ -5,7 +5,7 @@
 #pragma once
 #endif // _MSC_VER > 1000
 
-#include "..\Hermes.h"
+#include <Hermes.h> //the hermes api header
 
 class CGrabberListDlg : public CDialog
 {

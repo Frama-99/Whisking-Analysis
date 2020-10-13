@@ -7,7 +7,7 @@
 // SaveSeqDlg.h : header file
 //
 
-#include "..\Hermes.h"
+#include <Hermes.h> //the hermes api header
 
 /////////////////////////////////////////////////////////////////////////////
 // CSaveSeqDlg dialog
