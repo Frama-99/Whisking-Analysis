@@ -55,6 +55,7 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
 	if (CFrameWnd::OnCreate(lpCreateStruct) == -1)
 		return -1;
+
 	// create a view to occupy the client area of the frame
 	if (!ChildView.Create(NULL, NULL, AFX_WS_DEFAULT_VIEW,
 		CRect(0, 0, 0, 0), this, AFX_IDW_PANE_FIRST, NULL))
@@ -88,6 +89,9 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
         return -1; //failed to load a grabber
 
     ChildView.StartLive();
+
+	// if (!ChildViewPlay.LoadSequence())
+		// return -1;
 
 	return 0;
 }
@@ -156,6 +160,13 @@ void CMainFrame::OnUpdateSequencerNewsequence(CCmdUI* pCmdUI)
 void CMainFrame::OnSequencerClosesequence() 
 {
     ChildView.CloseSequence();
+
+	if (!ChildViewPlay.Create(NULL, NULL, AFX_WS_DEFAULT_VIEW,
+		CRect(0, 0, 0, 0), this, AFX_IDW_PANE_FIRST, NULL))
+	{
+		TRACE0("Failed to create view window\n");
+	}
+	ChildViewPlay.LoadSequence();
 }
 //-----------------------------------------------------------------------------
 void CMainFrame::OnUpdateSequencerClosesequence(CCmdUI* pCmdUI) 
@@ -201,6 +212,106 @@ void CMainFrame::OnClose()
 	CFrameWnd::OnClose();
 }
 
+//------------------------- Play ----------------------------------------------
+void CMainFrame::OnSequencerLoop()
+{
+	ChildViewPlay.ToggleLoop();
+}
+//-----------------------------------------------------------------------------
+void CMainFrame::OnUpdateSequencerLoop(CCmdUI* pCmdUI)
+{
+	pCmdUI->SetCheck(ChildViewPlay.IsLooping());
+}
+//-----------------------------------------------------------------------------
+void CMainFrame::OnSequencerPlay()
+{
+	ChildViewPlay.SetPlayState(PLAY);
+}
+//-----------------------------------------------------------------------------
+void CMainFrame::OnUpdateSequencerPlay(CCmdUI* pCmdUI)
+{
+	pCmdUI->SetCheck(ChildViewPlay.GetPlayState() == PLAY);
+}
+//-----------------------------------------------------------------------------
+void CMainFrame::OnSequencerPlayb30()
+{
+	ChildViewPlay.SetPlayState(PLAYB30);
+}
+//-----------------------------------------------------------------------------
+void CMainFrame::OnUpdateSequencerPlayb30(CCmdUI* pCmdUI)
+{
+	pCmdUI->SetCheck(ChildViewPlay.GetPlayState() == PLAYB30);
+}
+//-----------------------------------------------------------------------------
+void CMainFrame::OnSequencerPlayb15()
+{
+	ChildViewPlay.SetPlayState(PLAYB15);
+}
+//-----------------------------------------------------------------------------
+void CMainFrame::OnUpdateSequencerPlayb15(CCmdUI* pCmdUI)
+{
+	pCmdUI->SetCheck(ChildViewPlay.GetPlayState() == PLAYB15);
+}
+//-----------------------------------------------------------------------------
+void CMainFrame::OnSequencerPlaypause()
+{
+	ChildViewPlay.SetPlayState(PLAY0);
+}
+//-----------------------------------------------------------------------------
+void CMainFrame::OnUpdateSequencerPlaypause(CCmdUI* pCmdUI)
+{
+	pCmdUI->SetCheck(ChildViewPlay.GetPlayState() == PLAY0);
+}
+//-----------------------------------------------------------------------------
+void CMainFrame::OnSequencerPlay15()
+{
+	ChildViewPlay.SetPlayState(PLAYF15);
+}
+//-----------------------------------------------------------------------------
+void CMainFrame::OnUpdateSequencerPlay15(CCmdUI* pCmdUI)
+{
+	pCmdUI->SetCheck(ChildViewPlay.GetPlayState() == PLAYF15);
+}
+//-----------------------------------------------------------------------------
+void CMainFrame::OnSequencerPlay30()
+{
+	ChildViewPlay.SetPlayState(PLAYF30);
+}
+//-----------------------------------------------------------------------------
+void CMainFrame::OnUpdateSequencerPlay30(CCmdUI* pCmdUI)
+{
+	pCmdUI->SetCheck(ChildViewPlay.GetPlayState() == PLAYF30);
+}
+//-----------------------------------------------------------------------------
+void CMainFrame::OnSequencerStop()
+{
+	ChildViewPlay.SetPlayState(STOP);
+}
+//-----------------------------------------------------------------------------
+void CMainFrame::OnSequencerGoToPreviousFrame()
+{
+	ChildViewPlay.GoToPreviousFrame();
+}
+//-----------------------------------------------------------------------------
+void CMainFrame::OnSequencerGoToNextFrame()
+{
+	ChildViewPlay.GoToNextFrame();
+}
+//-----------------------------------------------------------------------------
+void CMainFrame::OnUpdateSequencerGoToNextFrame(CCmdUI* pCmdUI)
+{
+	pCmdUI->Enable(ChildViewPlay.GetPlayState() == STOP);
+}
+//-----------------------------------------------------------------------------
+void CMainFrame::OnUpdateSequencerGoToPreviousFrame(CCmdUI* pCmdUI)
+{
+	pCmdUI->Enable(ChildViewPlay.GetPlayState() == STOP);
+}
+//-----------------------------------------------------------------------------
+void CMainFrame::OnSequencerDescription()
+{
+	ChildViewPlay.EditSequenceDescription();
+}
 
 void CMainFrame::OnFileCreatenewproject()
 {

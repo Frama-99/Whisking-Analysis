@@ -36,6 +36,25 @@
 #define ID_SEQUENCER_CAPTUREAUDIO       32784
 #define ID_FILE_CREATENEWPROJECT        32785
 
+// Used by DemoPlay.rc, which is combined with DemoGrab.rc
+//
+#define IDD_ABOUTBOX                    100
+#define IDR_MAINFRAME                   128
+#define IDR_DEMOPLTYPE                  129
+#define IDD_DESCRIPTION                 130
+#define IDC_DESCRIPTION_EDIT            1000
+#define ID_SEQUENCER_GO_TO_NEXT_FRAME   32772
+#define ID_SEQUENCER_GO_TO_PREVIOUS_FRAME 32773
+#define ID_SEQUENCER_PLAY               32774
+#define ID_SEQUENCER_STOP               32775
+#define ID_SEQUENCER_PLAY30             32776
+#define ID_SEQUENCER_PLAY15             32777
+#define ID_SEQUENCER_PLAYPAUSE          32778
+#define ID_SEQUENCER_PLAYB30            32779
+#define ID_SEQUENCER_PLAYB15            32780
+#define ID_SEQUENCER_LOOP               32781
+#define ID_SEQUENCER_DESCRIPTION        32782
+
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED

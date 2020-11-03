@@ -512,6 +512,7 @@
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
+    <ClCompile Include="ChildViewPlay.cpp" />
     <ClCompile Include="DemoGrab.cpp">
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='DebugUnicode|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='DebugUnicode|x64'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -522,6 +523,7 @@
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
+    <ClCompile Include="DescriptionDlg.cpp" />
     <ClCompile Include="GrabberListDlg.cpp">
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='DebugUnicode|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='DebugUnicode|x64'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -582,7 +584,9 @@
   <ItemGroup>
     <ClInclude Include="AdvanceSettingsDlg.h" />
     <ClInclude Include="ChildView.h" />
+    <ClInclude Include="ChildViewPlay.h" />
     <ClInclude Include="DemoGrab.h" />
+    <ClInclude Include="DescriptionDlg.h" />
     <ClInclude Include="GrabberListDlg.h" />
     <ClInclude Include="MainFrm.h" />
     <ClInclude Include="NewProjectDlg.h" />

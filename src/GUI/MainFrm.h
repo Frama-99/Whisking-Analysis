@@ -6,6 +6,7 @@
 #endif // _MSC_VER > 1000
 
 #include "ChildView.h"
+#include "ChildViewPlay.h"
 
 class CMainFrame : public CFrameWnd
 {
@@ -34,10 +35,13 @@ protected:
 	CStatusBar  m_wndStatusBar;
 	CToolBar    m_wndToolBar;
 	CChildView  ChildView;
+	CChildViewPlay ChildViewPlay;
 
 	//{{AFX_MSG(CMainFrame)
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
 	afx_msg void OnSetFocus(CWnd *pOldWnd);
+	
+	// Grab
 	afx_msg void OnGrabberLive();
 	afx_msg void OnUpdateGrabberLive(CCmdUI* pCmdUI);
 	afx_msg void OnSequencerNewsequence();
@@ -51,6 +55,28 @@ protected:
 	afx_msg void OnSequencerCaptureaudio();
 	afx_msg void OnUpdateSequencerCaptureaudio(CCmdUI *pCmdUI);
 	afx_msg void OnClose();
+
+	// Play
+	afx_msg void OnSequencerGoToPreviousFrame();
+	afx_msg void OnSequencerGoToNextFrame();
+	afx_msg void OnSequencerPlay();
+	afx_msg void OnUpdateSequencerPlay(CCmdUI* pCmdUI);
+	afx_msg void OnSequencerStop();
+	afx_msg void OnSequencerLoop();
+	afx_msg void OnUpdateSequencerLoop(CCmdUI* pCmdUI);
+	afx_msg void OnSequencerPlay15();
+	afx_msg void OnUpdateSequencerPlay15(CCmdUI* pCmdUI);
+	afx_msg void OnSequencerPlay30();
+	afx_msg void OnUpdateSequencerPlay30(CCmdUI* pCmdUI);
+	afx_msg void OnSequencerPlayb15();
+	afx_msg void OnUpdateSequencerPlayb15(CCmdUI* pCmdUI);
+	afx_msg void OnSequencerPlayb30();
+	afx_msg void OnUpdateSequencerPlayb30(CCmdUI* pCmdUI);
+	afx_msg void OnSequencerPlaypause();
+	afx_msg void OnUpdateSequencerPlaypause(CCmdUI* pCmdUI);
+	afx_msg void OnUpdateSequencerGoToNextFrame(CCmdUI* pCmdUI);
+	afx_msg void OnUpdateSequencerGoToPreviousFrame(CCmdUI* pCmdUI);
+	afx_msg void OnSequencerDescription();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 public:
