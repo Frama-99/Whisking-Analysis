@@ -9,7 +9,7 @@ import math_utils
 from celluloid import Camera
 
 class Analysis:
-    def __init__(self, h5_path, DLCscorer):
+    def __init__(self, h5_path, DLCscorer, startframe, endframe):
         df = pd.read_hdf(h5_path)
         # https://stackoverflow.com/questions/34082137/how-to-get-pandas-column-multiindex-names-as-a-list
         self.bodyparts2plot = list(df.columns.levels[1])
@@ -19,6 +19,10 @@ class Analysis:
         self.df_y = np.empty((len(self.bodyparts2plot), self.nframes))
         self.outpath = os.path.dirname(
             os.path.abspath(__file__)) + '\\output\\'
+
+        self.startframe = startframe
+        self.endframe = endframe
+
         self.whisker_analysis_completed = False
         self.blink_analysis_completed = False
 
@@ -32,8 +36,6 @@ class Analysis:
             self.df_y[bpindex, :] = df[DLCscorer, bp, 'y'].values
 
     def plot_whisker_angles(self,
-                            startframe,
-                            endframe,
                             fill_gaps=False,
                             draw_video=False,
                             animate=False,
@@ -44,7 +46,7 @@ class Analysis:
         self.angle_l_arr = np.empty(self.nframes)
         self.angle_r_arr = np.empty(self.nframes)
 
-        for frame in range(startframe, endframe):
+        for frame in range(self.startframe, self.endframe):
             if frame % 100 == 0:
                 print("Processing Frame", frame)
 
@@ -100,11 +102,11 @@ class Analysis:
             self.angle_l_arr = math_utils.interpolate_gaps(self.angle_l_arr)
             self.angle_r_arr = math_utils.interpolate_gaps(self.angle_r_arr)
 
-        plt.plot(range(startframe, endframe),
-                 self.angle_l_arr[startframe:endframe],
+        plt.plot(range(self.startframe, self.endframe),
+                 self.angle_l_arr[self.startframe:self.endframe],
                  label="Left C1 Angle")
-        plt.plot(range(startframe, endframe),
-                 self.angle_r_arr[startframe:endframe],
+        plt.plot(range(self.startframe, self.endframe),
+                 self.angle_r_arr[self.startframe:self.endframe],
                  label="Right C1 Angle")
         plt.xlabel('frame')
         plt.ylabel('Angle in degrees')
@@ -115,18 +117,16 @@ class Analysis:
         self.whisker_analysis_completed = True
 
         if animate == True:
-            self.animate(startframe, endframe, bp='whiskers', fps=fps)
+            self.animate(bp='whiskers', fps=fps)
 
     def plot_blink_signal(self,
-                          startframe,
-                          endframe,
                           fill_gaps=False,
                           animate=False,
                           fps=60):
         self.d_l_arr = np.empty(self.nframes)
         self.d_r_arr = np.empty(self.nframes)
 
-        for frame in range(startframe, endframe):
+        for frame in range(self.startframe, self.endframe):
             if frame % 100 == 0:
                 print("Processing Frame", frame)
 
@@ -142,11 +142,11 @@ class Analysis:
             self.d_l_arr = math_utils.interpolate_gaps(self.d_l_arr)
             self.d_r_arr = math_utils.interpolate_gaps(self.d_r_arr)
 
-        plt.plot(range(startframe, endframe),
-                 self.d_l_arr[startframe:endframe],
+        plt.plot(range(self.startframe, self.endframe),
+                 self.d_l_arr[self.startframe:self.endframe],
                  label="Left Blink Signal")
-        plt.plot(range(startframe, endframe),
-                 self.d_r_arr[startframe:endframe],
+        plt.plot(range(self.startframe, self.endframe),
+                 self.d_r_arr[self.startframe:self.endframe],
                  label="Right Blink Signal")
         plt.xlabel('frame')
         plt.ylabel('Distance between upper and lower lids')
@@ -156,25 +156,29 @@ class Analysis:
         self.blink_analysis_completed = True
 
         if animate == True:
-            self.animate(startframe, endframe, bp='eyes', fps=fps) 
+            self.animate(bp='eyes', fps=fps) 
 
     def savecsv(self):
         if self.whisker_analysis_completed:
             whisker_angles = np.hstack((self.angle_l_arr.reshape(-1, 1), 
                                         self.angle_r_arr.reshape(-1, 1)))
-            np.savetxt('whisker_angles.csv', whisker_angles, delimiter=',')
+            np.savetxt(self.outpath + 'whisker_angles.csv', 
+                       whisker_angles, delimiter=',')
+            print(self.outpath + 'whisker_angles.csv' + " saved!")
 
         if self.blink_analysis_completed:
             blink_signal = np.hstack((self.d_l_arr.reshape(-1, 1), 
                                       self.d_r_arr.reshape(-1, 1)))
             
-            np.savetxt('blink_signal.csv', blink_signal, delimiter=',')
+            np.savetxt(self.outpath + 'blink_signal.csv', 
+                       blink_signal, delimiter=',')
+            print(self.outpath + 'whisker_angles.csv' + " saved!")
 
-    def animate(self, startframe, endframe, bp=None, fps=60):
+    def animate(self, bp=None, fps=60):
         colors = cm.rainbow(np.linspace(0, 1, len(self.bodyparts2plot)))
         camera = Camera(plt.figure())
 
-        for frame in range(startframe, endframe):
+        for frame in range(self.startframe, self.endframe):
             if frame % 100 == 0:
                 print("Animating Frame", frame)
             plt.scatter(self.df_x[:, frame],

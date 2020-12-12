@@ -46,15 +46,14 @@ def main():
 
     DLCscorer = 'DLC_resnet50_Whisking_with_MidlineMay3shuffle1_500000'
     
-    analysis = Analysis(h5path, DLCscorer)
-    analysis.plot_whisker_angles(startframe=0,
-                                 endframe=5305,
-                                 fill_gaps=False,
+    analysis = Analysis(h5_path=h5path, 
+                        DLCscorer=DLCscorer, 
+                        startframe=0, 
+                        endframe=5305)
+    analysis.plot_whisker_angles(fill_gaps=False,
                                  animate=False,
                                  fps=239.76)
-    analysis.plot_blink_signal(startframe=0, 
-                               endframe=5305, 
-                               fill_gaps=False, 
+    analysis.plot_blink_signal(fill_gaps=False, 
                                animate=False, 
                                fps=239.76)
     analysis.savecsv()
