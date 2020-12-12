@@ -36,7 +36,7 @@ class Analysis:
             # an array of 26 arrays with 5305 elements each
             self.df_y[bpindex, :] = df[DLCscorer, bp, 'y'].values
 
-    def plot_whisker_angles(self,
+    def calc_whisker_angles(self,
                             fill_gaps=False,
                             draw_video=False,
                             animate=False,
@@ -103,6 +103,12 @@ class Analysis:
             self.angle_l_arr = math_utils.interpolate_gaps(self.angle_l_arr)
             self.angle_r_arr = math_utils.interpolate_gaps(self.angle_r_arr)
 
+        self.whisker_analysis_completed = True
+
+        if animate == True:
+            self.animate(bp='whiskers', fps=fps)
+
+    def plot_whisker_angles(self):
         plt.plot(range(self.startframe, self.endframe),
                  self.angle_l_arr[self.startframe:self.endframe],
                  label="Left C1 Angle")
@@ -115,12 +121,8 @@ class Analysis:
 
         plt.savefig(self.outpath + 'whisker_angles.png', dpi=300)
         print("whisker_angles.png saved!")
-        self.whisker_analysis_completed = True
 
-        if animate == True:
-            self.animate(bp='whiskers', fps=fps)
-
-    def plot_blink_signal(self,
+    def calc_blink_signal(self,
                           fill_gaps=False,
                           animate=False,
                           fps=60):
@@ -143,6 +145,12 @@ class Analysis:
             self.d_l_arr = math_utils.interpolate_gaps(self.d_l_arr)
             self.d_r_arr = math_utils.interpolate_gaps(self.d_r_arr)
 
+        self.blink_analysis_completed = True
+
+        if animate == True:
+            self.animate(bp='eyes', fps=fps) 
+
+    def plot_blink_signal(self):
         plt.plot(range(self.startframe, self.endframe),
                  self.d_l_arr[self.startframe:self.endframe],
                  label="Left Blink Signal")
@@ -151,13 +159,9 @@ class Analysis:
                  label="Right Blink Signal")
         plt.xlabel('frame')
         plt.ylabel('Distance between upper and lower lids')
-        # plt.show()
+        plt.show()
         plt.savefig(self.outpath + 'blink_signal.png', dpi=300)
         print("blink_signal.png saved!")
-        self.blink_analysis_completed = True
-
-        if animate == True:
-            self.animate(bp='eyes', fps=fps) 
 
     def savecsv(self):
         if self.whisker_analysis_completed:
