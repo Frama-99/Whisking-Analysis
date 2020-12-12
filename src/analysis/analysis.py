@@ -5,6 +5,7 @@ from matplotlib import cm
 import numpy as np
 import pandas as pd
 import math_utils
+import draw
 
 from celluloid import Camera
 
@@ -173,6 +174,22 @@ class Analysis:
             np.savetxt(self.outpath + 'blink_signal.csv', 
                        blink_signal, delimiter=',')
             print(self.outpath + 'whisker_angles.csv' + " saved!")
+
+    def annotate_video(self, videopath):
+        lines_to_draw = [
+            self.m_midline_arr, self.m_c1_l_arr, self.m_c1_r_arr
+        ]
+        angles_to_print = {"left": self.angle_l_arr, 
+                           "right": self.angle_r_arr}
+        
+        draw.draw(path=videopath, 
+                  startframe=self.startframe,
+                  endframe=self.endframe,
+                  lines=lines_to_draw, 
+                  segments=None, 
+                  angles=angles_to_print, 
+                  outfile=self.outpath)
+
 
     def animate(self, bp=None, fps=60):
         colors = cm.rainbow(np.linspace(0, 1, len(self.bodyparts2plot)))

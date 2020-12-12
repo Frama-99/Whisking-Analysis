@@ -58,20 +58,7 @@ def main():
                                fps=239.76)
     analysis.savecsv()
 
-    lines_to_draw = [
-        analysis.m_midline_arr, analysis.m_c1_l_arr, analysis.m_c1_r_arr
-    ]
-    angles_to_print = {"left": analysis.angle_l_arr, "right": analysis.angle_r_arr}
-    outfile = analysis.outpath
-    draw(path=videopath, 
-         startframe=0, 
-         endframe=5305, 
-         lines=lines_to_draw, 
-         segments=None, 
-         angles=angles_to_print, 
-         outfile=outfile)
-    
-
+    analysis.annotate_video(videopath=videopath)
 
 if __name__ == '__main__':
     main()
