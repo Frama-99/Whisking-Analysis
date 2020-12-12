@@ -37,10 +37,7 @@ class Analysis:
             self.df_y[bpindex, :] = df[DLCscorer, bp, 'y'].values
 
     def calc_whisker_angles(self,
-                            fill_gaps=False,
-                            draw_video=False,
-                            animate=False,
-                            fps=60):
+                            fill_gaps=False):
         self.m_midline_arr = np.empty((self.nframes, 2))
         self.m_c1_l_arr = np.empty((self.nframes, 2))
         self.m_c1_r_arr = np.empty((self.nframes, 2))
@@ -105,9 +102,6 @@ class Analysis:
 
         self.whisker_analysis_completed = True
 
-        if animate == True:
-            self.animate(bp='whiskers', fps=fps)
-
     def plot_whisker_angles(self):
         plt.plot(range(self.startframe, self.endframe),
                  self.angle_l_arr[self.startframe:self.endframe],
@@ -123,9 +117,7 @@ class Analysis:
         print("whisker_angles.png saved!")
 
     def calc_blink_signal(self,
-                          fill_gaps=False,
-                          animate=False,
-                          fps=60):
+                          fill_gaps=False):
         self.d_l_arr = np.empty(self.nframes)
         self.d_r_arr = np.empty(self.nframes)
 
@@ -146,9 +138,6 @@ class Analysis:
             self.d_r_arr = math_utils.interpolate_gaps(self.d_r_arr)
 
         self.blink_analysis_completed = True
-
-        if animate == True:
-            self.animate(bp='eyes', fps=fps) 
 
     def plot_blink_signal(self):
         plt.plot(range(self.startframe, self.endframe),

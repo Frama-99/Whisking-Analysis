@@ -50,15 +50,15 @@ def main():
                         DLCscorer=DLCscorer, 
                         startframe=0, 
                         endframe=5305)
-    analysis.calc_whisker_angles(fill_gaps=False,
-                                 fps=239.76)
+    analysis.calc_whisker_angles(fill_gaps=False)
     analysis.plot_whisker_angles()
-    analysis.calc_blink_signal(fill_gaps=False,
-                               fps=239.76)
+    analysis.calc_blink_signal(fill_gaps=False)
     analysis.plot_blink_signal()
     analysis.savecsv()
 
     analysis.annotate_video(videopath=videopath)
+    # analysis.animate(bp='eyes', fps=239.76)
+    # analysis.animate(bp='whiskers', fps=239.76)
 
 if __name__ == '__main__':
     main()
