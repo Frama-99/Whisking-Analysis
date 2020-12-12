@@ -19,6 +19,9 @@ class Analysis:
         self.df_y = np.empty((len(self.bodyparts2plot), self.nframes))
         self.outpath = os.path.dirname(
             os.path.abspath(__file__)) + '\\output\\'
+        self.whisker_analysis_completed = False
+        self.blink_analysis_completed = False
+
 
         for bpindex, bp in enumerate(self.bodyparts2plot):
             self.df_likelihood[bpindex, :] = df[DLCscorer, bp,
@@ -109,6 +112,7 @@ class Analysis:
 
         plt.savefig(self.outpath + 'whisker_angles.png', dpi=300)
         print("whisker_angles.png saved!")
+        self.whisker_analysis_completed = True
 
         if animate == True:
             self.animate(startframe, endframe, bp='whiskers', fps=fps)
@@ -149,9 +153,22 @@ class Analysis:
         # plt.show()
         plt.savefig(self.outpath + 'blink_signal.png', dpi=300)
         print("blink_signal.png saved!")
+        self.blink_analysis_completed = True
 
         if animate == True:
-            self.animate(startframe, endframe, bp='eyes', fps=fps)
+            self.animate(startframe, endframe, bp='eyes', fps=fps) 
+
+    def savecsv(self):
+        if self.whisker_analysis_completed:
+            whisker_angles = np.hstack((self.angle_l_arr.reshape(-1, 1), 
+                                        self.angle_r_arr.reshape(-1, 1)))
+            np.savetxt('whisker_angles.csv', whisker_angles, delimiter=',')
+
+        if self.blink_analysis_completed:
+            blink_signal = np.hstack((self.d_l_arr.reshape(-1, 1), 
+                                      self.d_r_arr.reshape(-1, 1)))
+            
+            np.savetxt('blink_signal.csv', blink_signal, delimiter=',')
 
     def animate(self, startframe, endframe, bp=None, fps=60):
         colors = cm.rainbow(np.linspace(0, 1, len(self.bodyparts2plot)))
