@@ -27,7 +27,6 @@ class Analysis:
         self.whisker_analysis_completed = False
         self.blink_analysis_completed = False
 
-
         for bpindex, bp in enumerate(self.bodyparts2plot):
             self.df_likelihood[bpindex, :] = df[DLCscorer, bp,
                                                 'likelihood'].values
@@ -36,8 +35,7 @@ class Analysis:
             # an array of 26 arrays with 5305 elements each
             self.df_y[bpindex, :] = df[DLCscorer, bp, 'y'].values
 
-    def calc_whisker_angles(self,
-                            fill_gaps=False):
+    def calc_whisker_angles(self, fill_gaps=False):
         self.m_midline_arr = np.empty((self.nframes, 2))
         self.m_c1_l_arr = np.empty((self.nframes, 2))
         self.m_c1_r_arr = np.empty((self.nframes, 2))
@@ -89,8 +87,8 @@ class Analysis:
                 # the line perpendicular to the midline being 0.
                 angle_l = np.degrees(
                     np.arctan((m_midline[0] - m_c1_l[0]) /
-                              (1 + m_midline[0] * m_c1_l[0])))
-                angle_r = np.degrees(
+                              (1 + m_midline[0] * m_c1_l[0]))) + 90
+                angle_r = 90 - np.degrees(
                     np.arctan((m_midline[0] - m_c1_r[0]) /
                               (1 + m_midline[0] * m_c1_r[0])))
                 self.angle_l_arr[frame] = angle_l
@@ -116,8 +114,7 @@ class Analysis:
         plt.savefig(self.outpath + 'whisker_angles.png', dpi=300)
         print("whisker_angles.png saved!")
 
-    def calc_blink_signal(self,
-                          fill_gaps=False):
+    def calc_blink_signal(self, fill_gaps=False):
         self.d_l_arr = np.empty(self.nframes)
         self.d_r_arr = np.empty(self.nframes)
 
