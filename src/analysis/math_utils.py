@@ -21,8 +21,8 @@ def regress(df_x, df_y, df_likelihood, start_df_ind, end_df_ind, frame):
         # print("x_arr is now", x_arr)
         # print("y_arr is now", y_arr)
 
+    # If there is less than 3 points that we're confident about, return None
     if len(x_arr) < 3:
-        # print("Returning none")
         return None
 
     m, b = np.polyfit(x_arr, y_arr, 1)

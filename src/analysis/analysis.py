@@ -27,6 +27,10 @@ class Analysis:
         self.whisker_analysis_completed = False
         self.blink_analysis_completed = False
 
+        self.regression_lines = dict()
+        self.angles = dict()
+        self.segments = dict()
+
         for bpindex, bp in enumerate(self.bodyparts2plot):
             self.df_likelihood[bpindex, :] = df[DLCscorer, bp,
                                                 'likelihood'].values
@@ -34,6 +38,52 @@ class Analysis:
             self.df_x[bpindex, :] = df[DLCscorer, bp, 'x'].values
             # an array of 26 arrays with 5305 elements each
             self.df_y[bpindex, :] = df[DLCscorer, bp, 'y'].values
+
+    def calc_regression_line(self, name, start_df_ind, end_df_ind):
+        m_arr = np.empty((self.nframes, 2))
+        for frame in range(self.startframe, self.endframe):
+            if frame % 1000 == 0:
+                print("Processing Frame", frame)
+            m = math_utils.regress(self.df_x, self.df_y,
+                                   self.df_likelihood, 
+                                   start_df_ind, end_df_ind, frame)
+            if m is None:
+                print("Not enough points to regress on frame", frame, "for", name)
+                m_arr[frame] = [np.nan, np.nan]
+            else:
+                m_arr[frame] = m
+        self.regression_lines[name] = m_arr
+        print("Successfully regressed line", name)
+    
+    def calc_perpendicular_line(self, name, line_name):
+        m_arr = np.empty((self.nframes, 2))
+        m_old_arr = self.regression_lines[line_name]
+        for frame in range(self.startframe, self.endframe):
+            if frame % 1000 == 0:
+                print("Processing Frame", frame)
+            m = [1 / m_old_arr[0], m_old_arr[1]]
+            m_arr[frame] = m
+        self.regression_lines[name] = m_arr
+        print("Successfully calculated", name, "which is perpendicular to", line_name)
+    
+    def calc_angle(self, name, line1_name, line2_name, fill_gaps=False):
+        angle_arr = np.empty(self.nframes)
+        m1_arr = self.regression_lines[line1_name]
+        m2_arr = self.regression_lines[line2_name]
+        for frame in range(self.startframe, self.endframe):
+            if frame % 1000 == 0:
+                print("Processing Frame", frame)
+            if m1_arr[frame] is [np.nan, np.nan] or m2_arr[frame] is [np.nan, np.nan]:
+                angle_arr[frame] = np.nan
+            else:
+                m1 = m1_arr[frame][0]
+                m2 = m2_arr[frame][0]
+                angle_arr[frame] = np.degrees(
+                                        np.arctan((m1 - m2) / (1 + m1 * m2)))
+        if fill_gaps == True:
+            angle_arr = math_utils.interpolate_gaps(angle_arr)
+        self.angles[name] = angle_arr
+
 
     def calc_whisker_angles(self, fill_gaps=False):
         self.m_midline_arr = np.empty((self.nframes, 2))
