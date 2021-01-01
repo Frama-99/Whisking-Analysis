@@ -33,10 +33,8 @@ class Analysis:
         for bpindex, bp in enumerate(self.bodyparts2plot):
             self.df_likelihood[bpindex, :] = \
                 df[DLCscorer, bp, 'likelihood'].values[startframe:endframe]
-            # an array of 26 arrays with 5305 elements each
             self.df_x[bpindex, :] = \
                 df[DLCscorer, bp, 'x'].values[startframe:endframe]
-            # an array of 26 arrays with 5305 elements each
             self.df_y[bpindex, :] = \
                 df[DLCscorer, bp, 'y'].values[startframe:endframe]
     
@@ -109,6 +107,38 @@ class Analysis:
         self.datastore[name] = angle_arr
         print("Successfully calculated angle", name, 
                     "between lines", line1_name, "and", line2_name)
+    
+    def calc_segment_len(self, name, df_ind_1, df_ind_2, fill_gaps=False):
+        self.duplicate_name_check(name) 
+        seg_arr = np.empty(self.nframes)
+
+        print("\nStarting calculating length of segment", name, 
+              "between df indices", df_ind_1, "and", df_ind_2)
+        for frame in range(self.startframe, self.endframe):
+            if frame % 1000 == 0:
+                print("Processing Frame", frame)
+            
+            seg_arr[frame] = math_utils.distance(self.df_x, self.df_y, 
+                                                 df_ind_1, df_ind_2, frame)
+
+        if fill_gaps == True:
+            seg_arr = math_utils.interpolate_gaps(seg_arr)
+
+        self.datastore[name] = seg_arr
+        print("Successfully calculated length of segment", name, 
+              "between df indices", df_ind_1, "and", df_ind_2)
+    
+    def calc_avg(self, name, data_name_arr):
+        print("\nStarting calculating", name, 
+                "which is the average of", str(data_name_arr))
+        data_stack = []
+        for data_name in data_name_arr:
+            data_stack.append(self.datastore[data_name])
+        data_stack = np.vstack(tuple(data_stack))
+
+        self.datastore[name] = np.average(data_stack, axis=0)
+        print("Successfully calculated", name, 
+                "which is the average of", str(data_name_arr))
 
     def plot(self, y_name, label, x_name='frame'):
         if x_name == 'frame':

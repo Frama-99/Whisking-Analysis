@@ -62,9 +62,21 @@ def main():
     analysis.save_plot('frame', 'Whisker Angles')
     analysis.save_csv(['left_c1_angle', 'right_c1_angle'], 'angles.csv')
 
+    analysis.calc_segment_len('left_lid_1', 11, 15)
+    analysis.calc_segment_len('left_lid_2', 12, 14)
+    analysis.calc_avg('left_lid_avg', ['left_lid_1', 'left_lid_2'])
+    analysis.calc_segment_len('right_lid_1', 17, 21)
+    analysis.calc_segment_len('right_lid_2', 18, 20)
+    analysis.calc_avg('right_lid_avg', ['right_lid_1', 'right_lid_2'])
+    analysis.plot('left_lid_avg', 'Left Blink Signal')
+    analysis.plot('right_lid_avg', 'Right Blink Signal')
+    analysis.save_plot('frame', 'Blinking Signal')
+    analysis.save_csv(['left_lid_avg', 'left_lid_avg'], 'blink.csv')
+
+
     # deprecated
-    analysis.calc_whisker_angles(fill_gaps=False)
-    analysis.plot_whisker_angles()
+    # analysis.calc_whisker_angles(fill_gaps=False)
+    # analysis.plot_whisker_angles()
     # analysis.calc_blink_signal(fill_gaps=False)
     # analysis.plot_blink_signal()
     # analysis.savecsv()
