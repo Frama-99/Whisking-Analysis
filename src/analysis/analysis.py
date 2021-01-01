@@ -10,23 +10,27 @@ import draw
 from celluloid import Camera
 
 class Analysis:
-    def __init__(self, h5_path, DLCscorer, startframe, endframe):
+    def __init__(self, h5_path, DLCscorer, startframe=None, endframe=None):
         df = pd.read_hdf(h5_path)
-        # https://stackoverflow.com/questions/34082137/how-to-get-pandas-column-multiindex-names-as-a-list
+
+        if startframe is None:
+            self.startframe = 0
+        else:
+            self.startframe = startframe
+        if endframe is None:
+            self.endframe = len(df.index)
+        else:
+            self.endframe = endframe
+        assert self.endframe > self.startframe
+        self.nframes = self.endframe - self.startframe
+
         self.bodyparts2plot = list(df.columns.levels[1])
-        assert endframe > startframe
-        self.nframes = endframe - startframe
         self.df_likelihood = np.empty((len(self.bodyparts2plot), self.nframes))
         self.df_x = np.empty((len(self.bodyparts2plot), self.nframes))
         self.df_y = np.empty((len(self.bodyparts2plot), self.nframes))
+
         self.outpath = os.path.dirname(
             os.path.abspath(__file__)) + '\\output\\'
-
-        self.startframe = startframe
-        self.endframe = endframe
-
-        self.whisker_analysis_completed = False
-        self.blink_analysis_completed = False
 
         self.datastore = dict()
 
@@ -167,14 +171,11 @@ class Analysis:
         df.to_csv(os.path.join(self.outpath, filename))
 
 
-
-    # TODO: change bethods below to match new abstraction
-    def annotate_video(self, videopath):
-        lines_to_draw = [
-            self.m_midline_arr, self.m_c1_l_arr, self.m_c1_r_arr
-        ]
-        angles_to_print = {"left": self.angle_l_arr, 
-                           "right": self.angle_r_arr}
+    # TODO: improve this abstraction
+    def annotate_video(self, videopath, line_names, angle_names):
+        lines_to_draw = [self.datastore[name] for name in line_names]
+        angles_to_print = {"left": self.datastore[angle_names[0]], 
+                           "right": self.datastore[angle_names[0]]}
         
         draw.draw(path=videopath, 
                   startframe=self.startframe,
@@ -184,6 +185,7 @@ class Analysis:
                   angles=angles_to_print, 
                   outfile=self.outpath)
 
+    # TODO: change bethods below to match new abstraction
     def animate(self, bp=None, fps=60):
         colors = cm.rainbow(np.linspace(0, 1, len(self.bodyparts2plot)))
         camera = Camera(plt.figure())

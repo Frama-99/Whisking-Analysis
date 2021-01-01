@@ -48,8 +48,8 @@ def main():
     
     analysis = Analysis(h5_path=h5path, 
                         DLCscorer=DLCscorer, 
-                        startframe=0, 
-                        endframe=1000)
+                        startframe=None, 
+                        endframe=None)
 
     analysis.calc_regression_line('midline', 22, 25)
     analysis.calc_perpendicular_line('perp_to_midline', 'midline')
@@ -73,14 +73,7 @@ def main():
     analysis.save_plot('frame', 'Blinking Signal')
     analysis.save_csv(['left_lid_avg', 'left_lid_avg'], 'blink.csv')
 
-
-    # deprecated
-    # analysis.calc_whisker_angles(fill_gaps=False)
-    # analysis.plot_whisker_angles()
-    # analysis.calc_blink_signal(fill_gaps=False)
-    # analysis.plot_blink_signal()
-    # analysis.savecsv()
-
+    # TODO: change these to match new abstraction
     # analysis.annotate_video(videopath=videopath)
     # analysis.animate(bp='eyes', fps=239.76)
     # analysis.animate(bp='whiskers', fps=239.76)
