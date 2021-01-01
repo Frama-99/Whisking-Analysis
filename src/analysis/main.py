@@ -60,6 +60,7 @@ def main():
     analysis.plot('left_c1_angle', 'Left C1 Angle')
     analysis.plot('right_c1_angle', 'Right C1 Angle')
     analysis.save_plot('frame', 'Whisker Angles')
+    analysis.save_csv(['left_c1_angle', 'right_c1_angle'], 'angles.csv')
 
     # deprecated
     analysis.calc_whisker_angles(fill_gaps=False)

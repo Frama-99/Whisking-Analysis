@@ -14,7 +14,8 @@ class Analysis:
         df = pd.read_hdf(h5_path)
         # https://stackoverflow.com/questions/34082137/how-to-get-pandas-column-multiindex-names-as-a-list
         self.bodyparts2plot = list(df.columns.levels[1])
-        self.nframes = len(df.index)
+        assert endframe > startframe
+        self.nframes = endframe - startframe
         self.df_likelihood = np.empty((len(self.bodyparts2plot), self.nframes))
         self.df_x = np.empty((len(self.bodyparts2plot), self.nframes))
         self.df_y = np.empty((len(self.bodyparts2plot), self.nframes))
@@ -30,18 +31,21 @@ class Analysis:
         self.datastore = dict()
 
         for bpindex, bp in enumerate(self.bodyparts2plot):
-            self.df_likelihood[bpindex, :] = df[DLCscorer, bp,
-                                                'likelihood'].values
+            self.df_likelihood[bpindex, :] = \
+                df[DLCscorer, bp, 'likelihood'].values[startframe:endframe]
             # an array of 26 arrays with 5305 elements each
-            self.df_x[bpindex, :] = df[DLCscorer, bp, 'x'].values
+            self.df_x[bpindex, :] = \
+                df[DLCscorer, bp, 'x'].values[startframe:endframe]
             # an array of 26 arrays with 5305 elements each
-            self.df_y[bpindex, :] = df[DLCscorer, bp, 'y'].values
+            self.df_y[bpindex, :] = \
+                df[DLCscorer, bp, 'y'].values[startframe:endframe]
     
     def duplicate_name_check(self, name):
         if name in self.datastore:
             raise RuntimeError(name + " has already been defined.")
 
     def calc_regression_line(self, name, start_df_ind, end_df_ind):
+        self.duplicate_name_check(name)
         m_arr = np.empty((self.nframes, 2))
         frames_w_invalid_reg = []
 
@@ -67,6 +71,7 @@ class Analysis:
                     "between df indices", start_df_ind, "and", end_df_ind)
     
     def calc_perpendicular_line(self, name, line_name):
+        self.duplicate_name_check(name)
         m_arr = np.empty((self.nframes, 2))
         m_old_arr = self.datastore[line_name]
 
@@ -82,6 +87,7 @@ class Analysis:
                     "which is perpendicular to", line_name)
     
     def calc_angle(self, name, line1_name, line2_name, fill_gaps=False):
+        self.duplicate_name_check(name)
         angle_arr = np.empty(self.nframes)
         m1_arr = self.datastore[line1_name]
         m2_arr = self.datastore[line2_name]
@@ -107,8 +113,7 @@ class Analysis:
     def plot(self, y_name, label, x_name='frame'):
         if x_name == 'frame':
             x = range(self.startframe, self.endframe)
-        y = self.datastore[y_name][self.startframe:self.endframe] 
-        # TODO: expand to search over all self properties
+        y = self.datastore[y_name][self.startframe:self.endframe]
 
         plt.plot(x, y, label=label)
     
@@ -122,22 +127,14 @@ class Analysis:
         print(outfile, "saved!")
     
     def save_csv(self, col_names, filename):
-
-
-        if self.whisker_analysis_completed:
-            whisker_angles = np.hstack((self.angle_l_arr.reshape(-1, 1), 
-                                        self.angle_r_arr.reshape(-1, 1)))
-            np.savetxt(self.outpath + 'whisker_angles.csv', 
-                       whisker_angles, delimiter=',')
-            print(self.outpath + 'whisker_angles.csv' + " saved!")
-
-        if self.blink_analysis_completed:
-            blink_signal = np.hstack((self.d_l_arr.reshape(-1, 1), 
-                                      self.d_r_arr.reshape(-1, 1)))
-            
-            np.savetxt(self.outpath + 'blink_signal.csv', 
-                       blink_signal, delimiter=',')
-            print(self.outpath + 'whisker_angles.csv' + " saved!")
+        cols = []
+        for name in col_names:
+            cols.append(self.datastore[name].reshape(-1, 1))
+        
+        df = pd.DataFrame(np.hstack(tuple(cols)))
+        df.columns = col_names
+        
+        df.to_csv(os.path.join(self.outpath, filename))
 
 
     def calc_whisker_angles(self, fill_gaps=False):
