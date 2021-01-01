@@ -61,7 +61,7 @@ class Analysis:
         for frame in range(self.startframe, self.endframe):
             if frame % 1000 == 0:
                 print("Processing Frame", frame)
-            m = [1 / m_old_arr[0], m_old_arr[1]]
+            m = (1 / m_old_arr[frame][0], m_old_arr[frame][1])
             m_arr[frame] = m
         self.regression_lines[name] = m_arr
         print("Successfully calculated", name, "which is perpendicular to", line_name)
