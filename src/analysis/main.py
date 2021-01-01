@@ -49,15 +49,20 @@ def main():
     analysis = Analysis(h5_path=h5path, 
                         DLCscorer=DLCscorer, 
                         startframe=0, 
-                        endframe=5305)
+                        endframe=1000)
 
     analysis.calc_regression_line('midline', 22, 25)
     analysis.calc_regression_line('left_c1', 0, 5)
     analysis.calc_regression_line('right_c1', 5, 10)
     analysis.calc_angle('left_c1_angle', 'midline', 'left_c1')
     analysis.calc_angle('right_c1_angle', 'midline', 'right_c1')
-    # analysis.calc_whisker_angles(fill_gaps=False)
-    # analysis.plot_whisker_angles()
+    analysis.plot('left_c1_angle', 'Left C1 Angle')
+    analysis.plot('right_c1_angle', 'Right C1 Angle')
+    analysis.save_plot('frame', 'Whisker Angles')
+
+    # deprecated
+    analysis.calc_whisker_angles(fill_gaps=False)
+    analysis.plot_whisker_angles()
     # analysis.calc_blink_signal(fill_gaps=False)
     # analysis.plot_blink_signal()
     # analysis.savecsv()

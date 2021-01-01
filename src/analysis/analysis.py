@@ -78,11 +78,28 @@ class Analysis:
             else:
                 m1 = m1_arr[frame][0]
                 m2 = m2_arr[frame][0]
-                angle_arr[frame] = np.degrees(
-                                        np.arctan((m1 - m2) / (1 + m1 * m2)))
+                angle_arr[frame] = \
+                        np.degrees(np.arctan(np.abs((m1 - m2) / (1 + m1 * m2))))
         if fill_gaps == True:
             angle_arr = math_utils.interpolate_gaps(angle_arr)
         self.angles[name] = angle_arr
+
+    def plot(self, y_name, label, x_name='frame'):
+        if x_name == 'frame':
+            x = range(self.startframe, self.endframe)
+        y = self.angles[y_name][self.startframe:self.endframe] 
+        # TODO: expand to search over all self properties
+
+        plt.plot(x, y, label=label)
+    
+    def save_plot(self, xlabel, ylabel):
+        plt.xlabel(xlabel)
+        plt.ylabel(ylabel)
+        plt.show()
+
+        outfile = self.outpath + xlabel + '_vs_' + ylabel
+        plt.savefig(outfile, dpi=300)
+        print(outfile, "saved!")
 
 
     def calc_whisker_angles(self, fill_gaps=False):
