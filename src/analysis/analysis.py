@@ -167,136 +167,8 @@ class Analysis:
         df.to_csv(os.path.join(self.outpath, filename))
 
 
-    def calc_whisker_angles(self, fill_gaps=False):
-        self.m_midline_arr = np.empty((self.nframes, 2))
-        self.m_c1_l_arr = np.empty((self.nframes, 2))
-        self.m_c1_r_arr = np.empty((self.nframes, 2))
-        self.angle_l_arr = np.empty(self.nframes)
-        self.angle_r_arr = np.empty(self.nframes)
 
-        for frame in range(self.startframe, self.endframe):
-            if frame % 100 == 0:
-                print("Processing Frame", frame)
-
-            angle_nan = False
-
-            m_midline = math_utils.regress(self.df_x, self.df_y,
-                                           self.df_likelihood, 22, 25, frame)
-            if m_midline == None:
-                print("Not enough points to regress on frame", frame,
-                      "for midline.")
-                self.m_midline_arr[frame] = [np.nan, np.nan]
-                angle_nan = True
-            else:
-                self.m_midline_arr[frame] = m_midline
-
-            m_c1_l = math_utils.regress(self.df_x, self.df_y,
-                                        self.df_likelihood, 0, 5, frame)
-            if m_c1_l == None:
-                print("Not enough points to regress on frame", frame,
-                      "for left c1.")
-                self.m_c1_l_arr[frame] = [np.nan, np.nan]
-                angle_nan = True
-            else:
-                self.m_c1_l_arr[frame] = m_c1_l
-
-            m_c1_r = math_utils.regress(self.df_x, self.df_y,
-                                        self.df_likelihood, 5, 10, frame)
-            if m_c1_r == None:
-                print("Not enough points to regress on frame", frame,
-                      "for right c1.")
-                self.m_c1_r_arr[frame] = [np.nan, np.nan]
-                angle_nan = True
-            else:
-                self.m_c1_r_arr[frame] = m_c1_r
-
-            if angle_nan == True:
-                self.angle_l_arr[frame] = np.nan
-                self.angle_r_arr[frame] = np.nan
-            else:
-                # -90 because we are defining the Whisker angle as
-                # retraction = negative and protraction = positive, with
-                # the line perpendicular to the midline being 0.
-                angle_l = np.degrees(
-                    np.arctan((m_midline[0] - m_c1_l[0]) /
-                              (1 + m_midline[0] * m_c1_l[0]))) + 90
-                angle_r = 90 - np.degrees(
-                    np.arctan((m_midline[0] - m_c1_r[0]) /
-                              (1 + m_midline[0] * m_c1_r[0])))
-                self.angle_l_arr[frame] = angle_l
-                self.angle_r_arr[frame] = angle_r
-
-        if fill_gaps == True:
-            self.angle_l_arr = math_utils.interpolate_gaps(self.angle_l_arr)
-            self.angle_r_arr = math_utils.interpolate_gaps(self.angle_r_arr)
-
-        self.whisker_analysis_completed = True
-
-    def plot_whisker_angles(self):
-        plt.plot(range(self.startframe, self.endframe),
-                 self.angle_l_arr[self.startframe:self.endframe],
-                 label="Left C1 Angle")
-        plt.plot(range(self.startframe, self.endframe),
-                 self.angle_r_arr[self.startframe:self.endframe],
-                 label="Right C1 Angle")
-        plt.xlabel('frame')
-        plt.ylabel('Angle in degrees')
-        plt.show()
-
-        plt.savefig(self.outpath + 'whisker_angles.png', dpi=300)
-        print("whisker_angles.png saved!")
-
-    def calc_blink_signal(self, fill_gaps=False):
-        self.d_l_arr = np.empty(self.nframes)
-        self.d_r_arr = np.empty(self.nframes)
-
-        for frame in range(self.startframe, self.endframe):
-            if frame % 100 == 0:
-                print("Processing Frame", frame)
-
-            # Distance between upper and lower lids
-            self.d_l_arr[frame] = (
-                math_utils.distance(self.df_x, self.df_y, 11, 15, frame) +
-                math_utils.distance(self.df_x, self.df_y, 12, 14, frame)) / 2
-            self.d_r_arr[frame] = (
-                math_utils.distance(self.df_x, self.df_y, 17, 21, frame) +
-                math_utils.distance(self.df_x, self.df_y, 18, 20, frame)) / 2
-
-        if fill_gaps == True:
-            self.d_l_arr = math_utils.interpolate_gaps(self.d_l_arr)
-            self.d_r_arr = math_utils.interpolate_gaps(self.d_r_arr)
-
-        self.blink_analysis_completed = True
-
-    def plot_blink_signal(self):
-        plt.plot(range(self.startframe, self.endframe),
-                 self.d_l_arr[self.startframe:self.endframe],
-                 label="Left Blink Signal")
-        plt.plot(range(self.startframe, self.endframe),
-                 self.d_r_arr[self.startframe:self.endframe],
-                 label="Right Blink Signal")
-        plt.xlabel('frame')
-        plt.ylabel('Distance between upper and lower lids')
-        plt.show()
-        plt.savefig(self.outpath + 'blink_signal.png', dpi=300)
-        print("blink_signal.png saved!")
-
-    def savecsv(self):
-        if self.whisker_analysis_completed:
-            whisker_angles = np.hstack((self.angle_l_arr.reshape(-1, 1), 
-                                        self.angle_r_arr.reshape(-1, 1)))
-            np.savetxt(self.outpath + 'whisker_angles.csv', 
-                       whisker_angles, delimiter=',')
-            print(self.outpath + 'whisker_angles.csv' + " saved!")
-
-        if self.blink_analysis_completed:
-            blink_signal = np.hstack((self.d_l_arr.reshape(-1, 1), 
-                                      self.d_r_arr.reshape(-1, 1)))
-            
-            np.savetxt(self.outpath + 'blink_signal.csv', 
-                       blink_signal, delimiter=',')
-            print(self.outpath + 'whisker_angles.csv' + " saved!")
-
+    # TODO: change bethods below to match new abstraction
     def annotate_video(self, videopath):
         lines_to_draw = [
             self.m_midline_arr, self.m_c1_l_arr, self.m_c1_r_arr
@@ -311,7 +183,6 @@ class Analysis:
                   segments=None, 
                   angles=angles_to_print, 
                   outfile=self.outpath)
-
 
     def animate(self, bp=None, fps=60):
         colors = cm.rainbow(np.linspace(0, 1, len(self.bodyparts2plot)))
