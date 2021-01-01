@@ -41,6 +41,10 @@ class Analysis:
 
     def calc_regression_line(self, name, start_df_ind, end_df_ind):
         m_arr = np.empty((self.nframes, 2))
+        frames_w_invalid_reg = []
+
+        print("\nStarting regressing line", name, 
+                    "between df indices", start_df_ind, "and", end_df_ind)
         for frame in range(self.startframe, self.endframe):
             if frame % 1000 == 0:
                 print("Processing Frame", frame)
@@ -48,28 +52,40 @@ class Analysis:
                                    self.df_likelihood, 
                                    start_df_ind, end_df_ind, frame)
             if m is None:
-                print("Not enough points to regress on frame", frame, "for", name)
+                frames_w_invalid_reg.append(frame)
                 m_arr[frame] = [np.nan, np.nan]
             else:
                 m_arr[frame] = m
         self.regression_lines[name] = m_arr
-        print("Successfully regressed line", name)
+
+        if len(frames_w_invalid_reg) > 0:
+            print("Not enough points to regress on frames", 
+                            str(frames_w_invalid_reg), "for", name)
+        print("Successfully regressed line", name, 
+                    "between df indices", start_df_ind, "and", end_df_ind)
     
     def calc_perpendicular_line(self, name, line_name):
         m_arr = np.empty((self.nframes, 2))
         m_old_arr = self.regression_lines[line_name]
+
+        print("\nStarting calculating line", name, 
+                    "which is perpendicular to", line_name)
         for frame in range(self.startframe, self.endframe):
             if frame % 1000 == 0:
                 print("Processing Frame", frame)
             m = (1 / m_old_arr[frame][0], m_old_arr[frame][1])
             m_arr[frame] = m
         self.regression_lines[name] = m_arr
-        print("Successfully calculated", name, "which is perpendicular to", line_name)
+        print("Successfully calculated line", name, 
+                    "which is perpendicular to", line_name)
     
     def calc_angle(self, name, line1_name, line2_name, fill_gaps=False):
         angle_arr = np.empty(self.nframes)
         m1_arr = self.regression_lines[line1_name]
         m2_arr = self.regression_lines[line2_name]
+
+        print("\nStarting calculating angle", name, 
+                    "between lines", line1_name, "and", line2_name)
         for frame in range(self.startframe, self.endframe):
             if frame % 1000 == 0:
                 print("Processing Frame", frame)
@@ -83,6 +99,8 @@ class Analysis:
         if fill_gaps == True:
             angle_arr = math_utils.interpolate_gaps(angle_arr)
         self.angles[name] = angle_arr
+        print("Successfully calculated angle", name, 
+                    "between lines", line1_name, "and", line2_name)
 
     def plot(self, y_name, label, x_name='frame'):
         if x_name == 'frame':
