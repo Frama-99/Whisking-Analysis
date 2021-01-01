@@ -88,6 +88,7 @@ class Analysis:
         print("Successfully calculated line", name, 
                     "which is perpendicular to", line_name)
     
+    # TODO: some angles should be negative here
     def calc_angle(self, name, line1_name, line2_name, fill_gaps=False):
         self.duplicate_name_check(name)
         angle_arr = np.empty(self.nframes)
@@ -172,6 +173,8 @@ class Analysis:
 
 
     # TODO: improve this abstraction
+    # TODO: this currently errors with trying to annotate the perpendicular
+    # line
     def annotate_video(self, videopath, line_names, angle_names):
         lines_to_draw = [self.datastore[name] for name in line_names]
         angles_to_print = {"left": self.datastore[angle_names[0]], 
@@ -185,7 +188,7 @@ class Analysis:
                   angles=angles_to_print, 
                   outfile=self.outpath)
 
-    # TODO: change bethods below to match new abstraction
+    # TODO: change this method to match new abstraction
     def animate(self, bp=None, fps=60):
         colors = cm.rainbow(np.linspace(0, 1, len(self.bodyparts2plot)))
         camera = Camera(plt.figure())
