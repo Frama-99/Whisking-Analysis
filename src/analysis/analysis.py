@@ -27,9 +27,7 @@ class Analysis:
         self.whisker_analysis_completed = False
         self.blink_analysis_completed = False
 
-        self.regression_lines = dict()
-        self.angles = dict()
-        self.segments = dict()
+        self.datastore = dict()
 
         for bpindex, bp in enumerate(self.bodyparts2plot):
             self.df_likelihood[bpindex, :] = df[DLCscorer, bp,
@@ -38,6 +36,10 @@ class Analysis:
             self.df_x[bpindex, :] = df[DLCscorer, bp, 'x'].values
             # an array of 26 arrays with 5305 elements each
             self.df_y[bpindex, :] = df[DLCscorer, bp, 'y'].values
+    
+    def duplicate_name_check(self, name):
+        if name in self.datastore:
+            raise RuntimeError(name + " has already been defined.")
 
     def calc_regression_line(self, name, start_df_ind, end_df_ind):
         m_arr = np.empty((self.nframes, 2))
@@ -56,7 +58,7 @@ class Analysis:
                 m_arr[frame] = [np.nan, np.nan]
             else:
                 m_arr[frame] = m
-        self.regression_lines[name] = m_arr
+        self.datastore[name] = m_arr
 
         if len(frames_w_invalid_reg) > 0:
             print("Not enough points to regress on frames", 
@@ -66,7 +68,7 @@ class Analysis:
     
     def calc_perpendicular_line(self, name, line_name):
         m_arr = np.empty((self.nframes, 2))
-        m_old_arr = self.regression_lines[line_name]
+        m_old_arr = self.datastore[line_name]
 
         print("\nStarting calculating line", name, 
                     "which is perpendicular to", line_name)
@@ -75,14 +77,14 @@ class Analysis:
                 print("Processing Frame", frame)
             m = (1 / m_old_arr[frame][0], m_old_arr[frame][1])
             m_arr[frame] = m
-        self.regression_lines[name] = m_arr
+        self.datastore[name] = m_arr
         print("Successfully calculated line", name, 
                     "which is perpendicular to", line_name)
     
     def calc_angle(self, name, line1_name, line2_name, fill_gaps=False):
         angle_arr = np.empty(self.nframes)
-        m1_arr = self.regression_lines[line1_name]
-        m2_arr = self.regression_lines[line2_name]
+        m1_arr = self.datastore[line1_name]
+        m2_arr = self.datastore[line2_name]
 
         print("\nStarting calculating angle", name, 
                     "between lines", line1_name, "and", line2_name)
@@ -98,14 +100,14 @@ class Analysis:
                         np.degrees(np.arctan(np.abs((m1 - m2) / (1 + m1 * m2))))
         if fill_gaps == True:
             angle_arr = math_utils.interpolate_gaps(angle_arr)
-        self.angles[name] = angle_arr
+        self.datastore[name] = angle_arr
         print("Successfully calculated angle", name, 
                     "between lines", line1_name, "and", line2_name)
 
     def plot(self, y_name, label, x_name='frame'):
         if x_name == 'frame':
             x = range(self.startframe, self.endframe)
-        y = self.angles[y_name][self.startframe:self.endframe] 
+        y = self.datastore[y_name][self.startframe:self.endframe] 
         # TODO: expand to search over all self properties
 
         plt.plot(x, y, label=label)
@@ -118,6 +120,24 @@ class Analysis:
         outfile = self.outpath + xlabel + '_vs_' + ylabel
         plt.savefig(outfile, dpi=300)
         print(outfile, "saved!")
+    
+    def save_csv(self, col_names, filename):
+
+
+        if self.whisker_analysis_completed:
+            whisker_angles = np.hstack((self.angle_l_arr.reshape(-1, 1), 
+                                        self.angle_r_arr.reshape(-1, 1)))
+            np.savetxt(self.outpath + 'whisker_angles.csv', 
+                       whisker_angles, delimiter=',')
+            print(self.outpath + 'whisker_angles.csv' + " saved!")
+
+        if self.blink_analysis_completed:
+            blink_signal = np.hstack((self.d_l_arr.reshape(-1, 1), 
+                                      self.d_r_arr.reshape(-1, 1)))
+            
+            np.savetxt(self.outpath + 'blink_signal.csv', 
+                       blink_signal, delimiter=',')
+            print(self.outpath + 'whisker_angles.csv' + " saved!")
 
 
     def calc_whisker_angles(self, fill_gaps=False):
