@@ -234,7 +234,7 @@ class Analysis:
     def annotate_video(self, videopath, line_names, angle_names):
         lines_to_draw = [self.datastore[name] for name in line_names]
         angles_to_print = {"left": self.datastore[angle_names[0]], 
-                           "right": self.datastore[angle_names[0]]}
+                           "right": self.datastore[angle_names[1]]}
         
         draw.draw(path=videopath, 
                   startframe=self.startframe,
