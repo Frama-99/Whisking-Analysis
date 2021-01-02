@@ -47,6 +47,19 @@ class Analysis:
             raise RuntimeError(name + " has already been defined.")
 
     def calc_regression_line(self, name, start_df_ind, end_df_ind):
+        """
+        Calculate the line obtained by regressing points between
+        start_df_ind and end_df_ind.
+
+        Parameters:
+            name (str): identifier for the resulting line
+            start_df_ind (int): the dataframe index of the first point to be 
+                                included in the regression 
+            end_df_ind (int): the dataframe index of the last point to be 
+                              included in the regression 
+        Returns:
+            Nothing; adds the line identified by name to self.datastore
+        """
         self.duplicate_name_check(name)
         m_arr = np.empty((self.nframes, 2))
         frames_w_invalid_reg = []
@@ -73,6 +86,16 @@ class Analysis:
                     "between df indices", start_df_ind, "and", end_df_ind)
     
     def calc_perpendicular_line(self, name, line_name):
+        """
+        Calculate the line perpendicular to another line.
+
+        Parameters:
+            name (str): identifier for the resulting line
+            line_name (str): identifier for the input line
+        
+        Returns:
+            Nothing; adds the line identified by name to self.datastore
+        """
         self.duplicate_name_check(name)
         m_arr = np.empty((self.nframes, 2))
         m_old_arr = self.datastore[line_name]
@@ -89,6 +112,21 @@ class Analysis:
                     "which is perpendicular to", line_name)
     
     def calc_angle(self, name, line1_name, line2_name, fill_gaps=False):
+        """
+        Calculate the angle between two lines, where the angle from the
+        first line to the second line is positive when clockwise and
+        negative when counterclocksize. 
+
+        Parameters:
+            name (str): identifier for the resulting angle
+            line1_name (str): identifier for the first line
+            line2_name (str): identifier for the second line
+            fill_gaps (bool): when set to True, intopolate gaps to fill in
+                              NaN values
+        
+        Returns:
+            Nothing; adds the angle identified by name to self.datastore
+        """
         self.duplicate_name_check(name)
         angle_arr = np.empty(self.nframes)
         m1_arr = self.datastore[line1_name]
@@ -113,6 +151,22 @@ class Analysis:
                     "between lines", line1_name, "and", line2_name)
     
     def calc_segment_len(self, name, df_ind_1, df_ind_2, fill_gaps=False):
+        """
+        Calculate the length of a segment formed by two points, specified
+        by df_ind_1 and df_ind_2.
+
+        Parameters:
+            name (str): identifier for the resulting segment
+            df_ind_1 (int): the dataframe index of the first point
+                            that forms the segment
+            df_ind_2 (int): the dataframe index of the second point 
+                            that forms the segment
+            fill_gaps (bool): when set to True, intopolate gaps to fill in
+                              NaN values
+        
+        Returns:
+            Nothing; adds the segment identified by name to self.datastore
+        """
         self.duplicate_name_check(name) 
         seg_arr = np.empty(self.nframes)
 
@@ -133,6 +187,17 @@ class Analysis:
               "between df indices", df_ind_1, "and", df_ind_2)
     
     def calc_avg(self, name, data_name_arr):
+        """
+        Calculate the vectorized average of several pieces of data.
+
+        Parameters:
+            name (str): identifier for the resulting data
+            data_name_arr (str list): list of identifiers for the input
+                                      data
+        
+        Returns:
+            Nothing; adds the data identified by name to self.datastore
+        """
         print("\nStarting calculating", name, 
                 "which is the average of", str(data_name_arr))
         data_stack = []
