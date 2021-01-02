@@ -102,7 +102,7 @@ class Analysis:
         print("\nStarting calculating line", name, 
                     "which is perpendicular to", line_name)
         for frame in tqdm(range(self.startframe, self.endframe)):
-            m = (1 / m_old_arr[frame][0], m_old_arr[frame][1])
+            m = (-1 / m_old_arr[frame][0], m_old_arr[frame][1])
             m_arr[frame] = m
         self.datastore[name] = m_arr
         print("Successfully calculated line", name, 
