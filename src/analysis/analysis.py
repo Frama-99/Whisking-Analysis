@@ -88,7 +88,6 @@ class Analysis:
         print("Successfully calculated line", name, 
                     "which is perpendicular to", line_name)
     
-    # TODO: some angles should be negative here
     def calc_angle(self, name, line1_name, line2_name, fill_gaps=False):
         self.duplicate_name_check(name)
         angle_arr = np.empty(self.nframes)
@@ -106,7 +105,7 @@ class Analysis:
                 m1 = m1_arr[frame][0]
                 m2 = m2_arr[frame][0]
                 angle_arr[frame] = \
-                        np.degrees(np.arctan(np.abs((m1 - m2) / (1 + m1 * m2))))
+                        np.degrees(np.arctan((m1 - m2) / (1 + m1 * m2)))
         if fill_gaps == True:
             angle_arr = math_utils.interpolate_gaps(angle_arr)
         self.datastore[name] = angle_arr
