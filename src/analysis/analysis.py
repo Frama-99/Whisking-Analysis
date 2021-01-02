@@ -1,4 +1,5 @@
 import os
+from tqdm import tqdm
 
 import matplotlib.pyplot as plt
 from matplotlib import cm
@@ -66,9 +67,7 @@ class Analysis:
 
         print("\nStarting regressing line", name, 
                     "between df indices", start_df_ind, "and", end_df_ind)
-        for frame in range(self.startframe, self.endframe):
-            if frame % 1000 == 0:
-                print("Processing Frame", frame)
+        for frame in tqdm(range(self.startframe, self.endframe)):
             m = math_utils.regress(self.df_x, self.df_y,
                                    self.df_likelihood, 
                                    start_df_ind, end_df_ind, frame)
@@ -102,9 +101,7 @@ class Analysis:
 
         print("\nStarting calculating line", name, 
                     "which is perpendicular to", line_name)
-        for frame in range(self.startframe, self.endframe):
-            if frame % 1000 == 0:
-                print("Processing Frame", frame)
+        for frame in tqdm(range(self.startframe, self.endframe)):
             m = (1 / m_old_arr[frame][0], m_old_arr[frame][1])
             m_arr[frame] = m
         self.datastore[name] = m_arr
@@ -134,9 +131,7 @@ class Analysis:
 
         print("\nStarting calculating angle", name, 
                     "between lines", line1_name, "and", line2_name)
-        for frame in range(self.startframe, self.endframe):
-            if frame % 1000 == 0:
-                print("Processing Frame", frame)
+        for frame in tqdm(range(self.startframe, self.endframe)):
             if m1_arr[frame] is [np.nan, np.nan] or m2_arr[frame] is [np.nan, np.nan]:
                 angle_arr[frame] = np.nan
             else:
@@ -172,10 +167,7 @@ class Analysis:
 
         print("\nStarting calculating length of segment", name, 
               "between df indices", df_ind_1, "and", df_ind_2)
-        for frame in range(self.startframe, self.endframe):
-            if frame % 1000 == 0:
-                print("Processing Frame", frame)
-            
+        for frame in tqdm(range(self.startframe, self.endframe)):
             seg_arr[frame] = math_utils.distance(self.df_x, self.df_y, 
                                                  df_ind_1, df_ind_2, frame)
 
