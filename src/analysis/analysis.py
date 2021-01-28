@@ -1,163 +1,255 @@
 import os
+from tqdm import tqdm
 
 import matplotlib.pyplot as plt
 from matplotlib import cm
 import numpy as np
 import pandas as pd
 import math_utils
+import draw
 
 from celluloid import Camera
 
 class Analysis:
-    def __init__(self, h5_path, DLCscorer):
+    def __init__(self, h5_path, DLCscorer, startframe=None, endframe=None):
         df = pd.read_hdf(h5_path)
-        # https://stackoverflow.com/questions/34082137/how-to-get-pandas-column-multiindex-names-as-a-list
+
+        if startframe is None:
+            self.startframe = 0
+        else:
+            self.startframe = startframe
+        if endframe is None:
+            self.endframe = len(df.index)
+        else:
+            self.endframe = endframe
+        assert self.endframe > self.startframe
+        self.nframes = self.endframe - self.startframe
+
         self.bodyparts2plot = list(df.columns.levels[1])
-        self.nframes = len(df.index)
         self.df_likelihood = np.empty((len(self.bodyparts2plot), self.nframes))
         self.df_x = np.empty((len(self.bodyparts2plot), self.nframes))
         self.df_y = np.empty((len(self.bodyparts2plot), self.nframes))
+
         self.outpath = os.path.dirname(
             os.path.abspath(__file__)) + '\\output\\'
 
+        self.datastore = dict()
+
         for bpindex, bp in enumerate(self.bodyparts2plot):
-            self.df_likelihood[bpindex, :] = df[DLCscorer, bp,
-                                                'likelihood'].values
-            # an array of 26 arrays with 5305 elements each
-            self.df_x[bpindex, :] = df[DLCscorer, bp, 'x'].values
-            # an array of 26 arrays with 5305 elements each
-            self.df_y[bpindex, :] = df[DLCscorer, bp, 'y'].values
+            self.df_likelihood[bpindex, :] = \
+                df[DLCscorer, bp, 'likelihood'].values[startframe:endframe]
+            self.df_x[bpindex, :] = \
+                df[DLCscorer, bp, 'x'].values[startframe:endframe]
+            self.df_y[bpindex, :] = \
+                df[DLCscorer, bp, 'y'].values[startframe:endframe]
+    
+    def duplicate_name_check(self, name):
+        if name in self.datastore:
+            raise RuntimeError(name + " has already been defined.")
 
-    def plot_whisker_angles(self,
-                            startframe,
-                            endframe,
-                            fill_gaps=False,
-                            draw_video=False,
-                            animate=False,
-                            fps=60):
-        self.m_midline_arr = np.empty((self.nframes, 2))
-        self.m_c1_l_arr = np.empty((self.nframes, 2))
-        self.m_c1_r_arr = np.empty((self.nframes, 2))
-        self.angle_l_arr = np.empty(self.nframes)
-        self.angle_r_arr = np.empty(self.nframes)
+    def calc_regression_line(self, name, start_df_ind, end_df_ind):
+        """
+        Calculate the line obtained by regressing points between
+        start_df_ind and end_df_ind.
 
-        for frame in range(startframe, endframe):
-            if frame % 100 == 0:
-                print("Processing Frame", frame)
+        Parameters:
+            name (str): identifier for the resulting line
+            start_df_ind (int): the dataframe index of the first point to be 
+                                included in the regression 
+            end_df_ind (int): the dataframe index of the last point to be 
+                              included in the regression 
+        Returns:
+            Nothing; adds the line identified by name to self.datastore
+        """
+        self.duplicate_name_check(name)
+        m_arr = np.empty((self.nframes, 2))
+        frames_w_invalid_reg = []
 
-            angle_nan = False
-
-            m_midline = math_utils.regress(self.df_x, self.df_y,
-                                           self.df_likelihood, 22, 25, frame)
-            if m_midline == None:
-                print("Not enough points to regress on frame", frame,
-                      "for midline.")
-                self.m_midline_arr[frame] = [np.nan, np.nan]
-                angle_nan = True
+        print("\nStarting regressing line", name, 
+                    "between df indices", start_df_ind, "and", end_df_ind)
+        for frame in tqdm(range(self.startframe, self.endframe)):
+            m = math_utils.regress(self.df_x, self.df_y,
+                                   self.df_likelihood, 
+                                   start_df_ind, end_df_ind, frame)
+            if m is None:
+                frames_w_invalid_reg.append(frame)
+                m_arr[frame] = [np.nan, np.nan]
             else:
-                self.m_midline_arr[frame] = m_midline
+                m_arr[frame] = m
+        self.datastore[name] = m_arr
 
-            m_c1_l = math_utils.regress(self.df_x, self.df_y,
-                                        self.df_likelihood, 0, 5, frame)
-            if m_c1_l == None:
-                print("Not enough points to regress on frame", frame,
-                      "for left c1.")
-                self.m_c1_l_arr[frame] = [np.nan, np.nan]
-                angle_nan = True
-            else:
-                self.m_c1_l_arr[frame] = m_c1_l
+        if len(frames_w_invalid_reg) > 0:
+            print("Not enough points to regress on frames", 
+                            str(frames_w_invalid_reg), "for", name)
+        print("Successfully regressed line", name, 
+                    "between df indices", start_df_ind, "and", end_df_ind)
+    
+    def calc_perpendicular_line(self, name, line_name):
+        """
+        Calculate the line perpendicular to another line.
 
-            m_c1_r = math_utils.regress(self.df_x, self.df_y,
-                                        self.df_likelihood, 5, 10, frame)
-            if m_c1_r == None:
-                print("Not enough points to regress on frame", frame,
-                      "for right c1.")
-                self.m_c1_r_arr[frame] = [np.nan, np.nan]
-                angle_nan = True
-            else:
-                self.m_c1_r_arr[frame] = m_c1_r
+        Parameters:
+            name (str): identifier for the resulting line
+            line_name (str): identifier for the input line
+        
+        Returns:
+            Nothing; adds the line identified by name to self.datastore
+        """
+        self.duplicate_name_check(name)
+        m_arr = np.empty((self.nframes, 2))
+        m_old_arr = self.datastore[line_name]
 
-            if angle_nan == True:
-                self.angle_l_arr[frame] = np.nan
-                self.angle_r_arr[frame] = np.nan
+        print("\nStarting calculating line", name, 
+                    "which is perpendicular to", line_name)
+        for frame in tqdm(range(self.startframe, self.endframe)):
+            m = (-1 / m_old_arr[frame][0], m_old_arr[frame][1])
+            m_arr[frame] = m
+        self.datastore[name] = m_arr
+        print("Successfully calculated line", name, 
+                    "which is perpendicular to", line_name)
+    
+    def calc_angle(self, name, line1_name, line2_name, fill_gaps=False):
+        """
+        Calculate the angle between two lines, where the angle from the
+        first line to the second line is positive when clockwise and
+        negative when counterclocksize. 
+
+        Parameters:
+            name (str): identifier for the resulting angle
+            line1_name (str): identifier for the first line
+            line2_name (str): identifier for the second line
+            fill_gaps (bool): when set to True, intopolate gaps to fill in
+                              NaN values
+        
+        Returns:
+            Nothing; adds the angle identified by name to self.datastore
+        """
+        self.duplicate_name_check(name)
+        angle_arr = np.empty(self.nframes)
+        m1_arr = self.datastore[line1_name]
+        m2_arr = self.datastore[line2_name]
+
+        print("\nStarting calculating angle", name, 
+                    "between lines", line1_name, "and", line2_name)
+        for frame in tqdm(range(self.startframe, self.endframe)):
+            if m1_arr[frame] is [np.nan, np.nan] or m2_arr[frame] is [np.nan, np.nan]:
+                angle_arr[frame] = np.nan
             else:
-                # -90 because we are defining the Whisker angle as
-                # retraction = negative and protraction = positive, with
-                # the line perpendicular to the midline being 0.
-                angle_l = np.degrees(
-                    np.arctan((m_midline[0] - m_c1_l[0]) /
-                              (1 + m_midline[0] * m_c1_l[0])))
-                angle_r = np.degrees(
-                    np.arctan((m_midline[0] - m_c1_r[0]) /
-                              (1 + m_midline[0] * m_c1_r[0])))
-                self.angle_l_arr[frame] = angle_l
-                self.angle_r_arr[frame] = angle_r
+                m1 = m1_arr[frame][0]
+                m2 = m2_arr[frame][0]
+                angle_arr[frame] = \
+                        np.degrees(np.arctan((m1 - m2) / (1 + m1 * m2)))
+        if fill_gaps == True:
+            angle_arr = math_utils.interpolate_gaps(angle_arr)
+        self.datastore[name] = angle_arr
+        print("Successfully calculated angle", name, 
+                    "between lines", line1_name, "and", line2_name)
+    
+    def calc_segment_len(self, name, df_ind_1, df_ind_2, fill_gaps=False):
+        """
+        Calculate the length of a segment formed by two points, specified
+        by df_ind_1 and df_ind_2.
+
+        Parameters:
+            name (str): identifier for the resulting segment
+            df_ind_1 (int): the dataframe index of the first point
+                            that forms the segment
+            df_ind_2 (int): the dataframe index of the second point 
+                            that forms the segment
+            fill_gaps (bool): when set to True, intopolate gaps to fill in
+                              NaN values
+        
+        Returns:
+            Nothing; adds the segment identified by name to self.datastore
+        """
+        self.duplicate_name_check(name) 
+        seg_arr = np.empty(self.nframes)
+
+        print("\nStarting calculating length of segment", name, 
+              "between df indices", df_ind_1, "and", df_ind_2)
+        for frame in tqdm(range(self.startframe, self.endframe)):
+            seg_arr[frame] = math_utils.distance(self.df_x, self.df_y, 
+                                                 df_ind_1, df_ind_2, frame)
 
         if fill_gaps == True:
-            self.angle_l_arr = math_utils.interpolate_gaps(self.angle_l_arr)
-            self.angle_r_arr = math_utils.interpolate_gaps(self.angle_r_arr)
+            seg_arr = math_utils.interpolate_gaps(seg_arr)
 
-        plt.plot(range(startframe, endframe),
-                 self.angle_l_arr[startframe:endframe],
-                 label="Left C1 Angle")
-        plt.plot(range(startframe, endframe),
-                 self.angle_r_arr[startframe:endframe],
-                 label="Right C1 Angle")
-        plt.xlabel('frame')
-        plt.ylabel('Angle in degrees')
+        self.datastore[name] = seg_arr
+        print("Successfully calculated length of segment", name, 
+              "between df indices", df_ind_1, "and", df_ind_2)
+    
+    def calc_avg(self, name, data_name_arr):
+        """
+        Calculate the vectorized average of several pieces of data.
+
+        Parameters:
+            name (str): identifier for the resulting data
+            data_name_arr (str list): list of identifiers for the input
+                                      data
+        
+        Returns:
+            Nothing; adds the data identified by name to self.datastore
+        """
+        print("\nStarting calculating", name, 
+                "which is the average of", str(data_name_arr))
+        data_stack = []
+        for data_name in data_name_arr:
+            data_stack.append(self.datastore[data_name])
+        data_stack = np.vstack(tuple(data_stack))
+
+        self.datastore[name] = np.average(data_stack, axis=0)
+        print("Successfully calculated", name, 
+                "which is the average of", str(data_name_arr))
+
+    def plot(self, y_name, label, x_name='frame'):
+        if x_name == 'frame':
+            x = range(self.startframe, self.endframe)
+        y = self.datastore[y_name][self.startframe:self.endframe]
+
+        plt.plot(x, y, label=label)
+    
+    def save_plot(self, xlabel, ylabel):
+        plt.xlabel(xlabel)
+        plt.ylabel(ylabel)
         plt.show()
 
-        plt.savefig(self.outpath + 'whisker_angles.png', dpi=300)
-        print("whisker_angles.png saved!")
+        outfile = self.outpath + xlabel + '_vs_' + ylabel
+        plt.savefig(outfile, dpi=300)
+        print(outfile, "saved!")
+    
+    def save_csv(self, col_names, filename):
+        cols = []
+        for name in col_names:
+            cols.append(self.datastore[name].reshape(-1, 1))
+        
+        df = pd.DataFrame(np.hstack(tuple(cols)))
+        df.columns = col_names
+        
+        df.to_csv(os.path.join(self.outpath, filename))
 
-        if animate == True:
-            self.animate(startframe, endframe, bp='whiskers', fps=fps)
 
-    def plot_blink_signal(self,
-                          startframe,
-                          endframe,
-                          fill_gaps=False,
-                          animate=False,
-                          fps=60):
-        self.d_l_arr = np.empty(self.nframes)
-        self.d_r_arr = np.empty(self.nframes)
+    # TODO: improve this abstraction
+    # TODO: this currently errors with trying to annotate the perpendicular
+    # line
+    def annotate_video(self, videopath, line_names, angle_names):
+        lines_to_draw = [self.datastore[name] for name in line_names]
+        angles_to_print = {"left": self.datastore[angle_names[0]], 
+                           "right": self.datastore[angle_names[1]]}
+        
+        draw.draw(path=videopath, 
+                  startframe=self.startframe,
+                  endframe=self.endframe,
+                  lines=lines_to_draw, 
+                  segments=None, 
+                  angles=angles_to_print, 
+                  outfile=self.outpath)
 
-        for frame in range(startframe, endframe):
-            if frame % 100 == 0:
-                print("Processing Frame", frame)
-
-            # Distance between upper and lower lids
-            self.d_l_arr[frame] = (
-                math_utils.distance(self.df_x, self.df_y, 11, 15, frame) +
-                math_utils.distance(self.df_x, self.df_y, 12, 14, frame)) / 2
-            self.d_r_arr[frame] = (
-                math_utils.distance(self.df_x, self.df_y, 17, 21, frame) +
-                math_utils.distance(self.df_x, self.df_y, 18, 20, frame)) / 2
-
-        if fill_gaps == True:
-            self.d_l_arr = math_utils.interpolate_gaps(self.d_l_arr)
-            self.d_r_arr = math_utils.interpolate_gaps(self.d_r_arr)
-
-        plt.plot(range(startframe, endframe),
-                 self.d_l_arr[startframe:endframe],
-                 label="Left Blink Signal")
-        plt.plot(range(startframe, endframe),
-                 self.d_r_arr[startframe:endframe],
-                 label="Right Blink Signal")
-        plt.xlabel('frame')
-        plt.ylabel('Distance between upper and lower lids')
-        # plt.show()
-        plt.savefig(self.outpath + 'blink_signal.png', dpi=300)
-        print("blink_signal.png saved!")
-
-        if animate == True:
-            self.animate(startframe, endframe, bp='eyes', fps=fps)
-
-    def animate(self, startframe, endframe, bp=None, fps=60):
+    # TODO: change this method to match new abstraction
+    def animate(self, bp=None, fps=60):
         colors = cm.rainbow(np.linspace(0, 1, len(self.bodyparts2plot)))
         camera = Camera(plt.figure())
 
-        for frame in range(startframe, endframe):
+        for frame in range(self.startframe, self.endframe):
             if frame % 100 == 0:
                 print("Animating Frame", frame)
             plt.scatter(self.df_x[:, frame],

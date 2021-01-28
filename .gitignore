@@ -499,3 +499,4 @@ src/analysis/dlc_model
 src/GUI/.vs
 /sample-project
 utils/premiere_project_for_viewing_frame_by_frame
+output/

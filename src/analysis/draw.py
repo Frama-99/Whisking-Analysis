@@ -122,12 +122,23 @@ def draw_elements(im, lines, segments, angles, frame, width, height):
     # print angles
     if angles is not None:
         for angle in angles:
-            angle_annotation = "Left Angle: " + str(np.around(angles['left'][frame], 2)) + " Right Angle: " + str(np.around(angles['right'][frame], 2))
+            l_angle_annotation = "Left Angle: " + str(np.around(angles['left'][frame], 2))
             cv2.putText(img=im,
-                        text=angle_annotation,
+                        text=l_angle_annotation,
                         org=(10, 50),
                         fontFace=cv2.FONT_HERSHEY_SIMPLEX,
                         fontScale=1,
                         color=(255, 255, 255),
                         thickness=2,
                         lineType=cv2.LINE_AA)
+
+            r_angle_annotation = "Right Angle: " + str(np.around(angles['right'][frame], 2))
+            cv2.putText(img=im,
+                        text=r_angle_annotation,
+                        org=(10, 80),
+                        fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+                        fontScale=1,
+                        color=(255, 255, 255),
+                        thickness=2,
+                        lineType=cv2.LINE_AA)
+            
